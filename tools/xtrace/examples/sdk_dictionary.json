@@ -1,0 +1,511 @@
+{
+  "_comment": "Combined xSDK v2 event dictionary generated from module dictionaries.",
+  "events": {
+    "100": {
+      "arg_labels": [
+        "configuration_value"
+      ],
+      "name": "SET_CONFIGURATION",
+      "param_count": 1,
+      "track": "xUSBD/Control",
+      "type": "instant"
+    },
+    "101": {
+      "arg_labels": [
+        "packed_request"
+      ],
+      "name": "CONTROL_REQUEST",
+      "param_count": 1,
+      "track": "xUSBD/Control",
+      "type": "instant"
+    },
+    "102": {
+      "arg_labels": [
+        "endpoint_address"
+      ],
+      "name": "EP_STALL",
+      "param_count": 1,
+      "track": "xUSBD/Endpoint",
+      "type": "instant"
+    },
+    "103": {
+      "arg_labels": [
+        "endpoint_address"
+      ],
+      "name": "EP_CLEAR_STALL",
+      "param_count": 1,
+      "track": "xUSBD/Endpoint",
+      "type": "instant"
+    },
+    "104": {
+      "arg_labels": [
+        "transfer_length"
+      ],
+      "name": "EP_IN",
+      "param_count": 1,
+      "track": "xUSBD/Endpoint",
+      "type": "counter"
+    },
+    "105": {
+      "arg_labels": [
+        "transfer_length"
+      ],
+      "name": "EP_OUT",
+      "param_count": 1,
+      "track": "xUSBD/Endpoint",
+      "type": "counter"
+    },
+    "106": {
+      "arg_labels": [
+        "owner_id"
+      ],
+      "name": "CLASS_REQUEST",
+      "param_count": 1,
+      "track": "xUSBD/Class",
+      "type": "instant"
+    },
+    "107": {
+      "arg_labels": [
+        "status"
+      ],
+      "name": "DCD_ERROR",
+      "param_count": 1,
+      "track": "xUSBD/DCD",
+      "type": "error"
+    },
+    "32": {
+      "arg_labels": [
+        "first_task_id"
+      ],
+      "name": "KERNEL_START",
+      "param_count": 1,
+      "track": "xRTOS/Kernel",
+      "type": "instant"
+    },
+    "33": {
+      "arg_labels": [
+        "task_id",
+        "priority"
+      ],
+      "name": "TASK_CREATE",
+      "param_count": 2,
+      "track": "xRTOS/Task",
+      "type": "instant"
+    },
+    "34": {
+      "arg_labels": [
+        "prev_task_id",
+        "next_task_id"
+      ],
+      "name": "TASK_SWITCH",
+      "param_count": 2,
+      "track": "xRTOS/Task",
+      "type": "instant"
+    },
+    "35": {
+      "arg_labels": [
+        "task_id"
+      ],
+      "name": "TASK_READY",
+      "param_count": 1,
+      "track": "xRTOS/Task",
+      "type": "instant"
+    },
+    "36": {
+      "arg_labels": [
+        "task_id",
+        "wait_object_ptr"
+      ],
+      "name": "TASK_BLOCK",
+      "param_count": 2,
+      "track": "xRTOS/Task",
+      "type": "instant"
+    },
+    "37": {
+      "arg_labels": [
+        "task_id"
+      ],
+      "name": "TASK_EXIT",
+      "param_count": 1,
+      "track": "xRTOS/Task",
+      "type": "instant"
+    },
+    "38": {
+      "arg_labels": [
+        "task_id"
+      ],
+      "name": "TASK_TIMEOUT",
+      "param_count": 1,
+      "track": "xRTOS/Task",
+      "type": "instant"
+    },
+    "39": {
+      "arg_labels": [
+        "task_id",
+        "new_priority"
+      ],
+      "name": "TASK_PRIO",
+      "param_count": 2,
+      "track": "xRTOS/Task",
+      "type": "instant"
+    },
+    "40": {
+      "arg_labels": [
+        "target_task_id"
+      ],
+      "name": "TASK_NOTIFY",
+      "param_count": 1,
+      "track": "xRTOS/Task",
+      "type": "instant"
+    },
+    "41": {
+      "arg_labels": [
+        "tick_count"
+      ],
+      "name": "TICK",
+      "param_count": 1,
+      "track": "xRTOS/Tick",
+      "type": "counter"
+    },
+    "42": {
+      "arg_labels": [
+        "timer_id"
+      ],
+      "name": "TIMER_FIRE",
+      "param_count": 1,
+      "track": "xRTOS/Timer",
+      "type": "instant"
+    },
+    "43": {
+      "arg_labels": [
+        "count_after"
+      ],
+      "name": "SEM_GIVE",
+      "param_count": 1,
+      "track": "xRTOS/Sem",
+      "type": "counter"
+    },
+    "44": {
+      "arg_labels": [
+        "count_after"
+      ],
+      "name": "SEM_TAKE",
+      "param_count": 1,
+      "track": "xRTOS/Sem",
+      "type": "counter"
+    },
+    "45": {
+      "arg_labels": [
+        "owner_task_id"
+      ],
+      "name": "MUTEX_LOCK",
+      "param_count": 1,
+      "track": "xRTOS/Mutex",
+      "type": "begin"
+    },
+    "46": {
+      "arg_labels": [
+        "releasing_task_id"
+      ],
+      "name": "MUTEX_UNLOCK",
+      "param_count": 1,
+      "track": "xRTOS/Mutex",
+      "type": "end"
+    },
+    "47": {
+      "arg_labels": [
+        "prev_owner",
+        "new_owner"
+      ],
+      "name": "MUTEX_HANDOFF",
+      "param_count": 2,
+      "track": "xRTOS/Mutex",
+      "type": "instant"
+    },
+    "48": {
+      "arg_labels": [
+        "flags_after_or"
+      ],
+      "name": "EVENT_SET",
+      "param_count": 1,
+      "track": "xRTOS/Event",
+      "type": "instant"
+    },
+    "49": {
+      "arg_labels": [
+        "matched_flags"
+      ],
+      "name": "EVENT_WAIT",
+      "param_count": 1,
+      "track": "xRTOS/Event",
+      "type": "instant"
+    },
+    "50": {
+      "arg_labels": [
+        "used_count"
+      ],
+      "name": "QUEUE_SEND",
+      "param_count": 1,
+      "track": "xRTOS/Queue",
+      "type": "counter"
+    },
+    "51": {
+      "arg_labels": [
+        "used_count"
+      ],
+      "name": "QUEUE_RECV",
+      "param_count": 1,
+      "track": "xRTOS/Queue",
+      "type": "counter"
+    },
+    "52": {
+      "arg_labels": [
+        "timer_id"
+      ],
+      "name": "TIMER_START",
+      "param_count": 1,
+      "track": "xRTOS/Timer",
+      "type": "begin"
+    },
+    "53": {
+      "arg_labels": [
+        "timer_id"
+      ],
+      "name": "TIMER_STOP",
+      "param_count": 1,
+      "track": "xRTOS/Timer",
+      "type": "end"
+    },
+    "54": {
+      "arg_labels": [
+        "vector_num"
+      ],
+      "name": "ISR_ENTER",
+      "param_count": 1,
+      "track": "xRTOS/ISR",
+      "type": "begin"
+    },
+    "55": {
+      "arg_labels": [
+        "vector_num"
+      ],
+      "name": "ISR_EXIT",
+      "param_count": 1,
+      "track": "xRTOS/ISR",
+      "type": "end"
+    },
+    "56": {
+      "arg_labels": [
+        "task_id"
+      ],
+      "name": "STACK_CORRUPT",
+      "param_count": 1,
+      "track": "xRTOS/Task",
+      "type": "error"
+    },
+    "57": {
+      "arg_labels": [
+        "queue_ptr"
+      ],
+      "name": "QUEUE_FULL",
+      "param_count": 1,
+      "track": "xRTOS/Queue",
+      "type": "instant"
+    },
+    "58": {
+      "arg_labels": [
+        "sem_ptr"
+      ],
+      "name": "SEM_FULL",
+      "param_count": 1,
+      "track": "xRTOS/Sem",
+      "type": "instant"
+    },
+    "59": {
+      "arg_labels": [
+        "obj_type",
+        "obj_id"
+      ],
+      "name": "OBJECT_NAME",
+      "param_count": 2,
+      "track": "xRTOS/Names",
+      "type": "instant"
+    },
+    "64": {
+      "arg_labels": [
+        "root_dir_cluster"
+      ],
+      "name": "FS_MOUNT",
+      "param_count": 1,
+      "track": "xFS/Core",
+      "type": "instant"
+    },
+    "65": {
+      "arg_labels": [
+        "unused"
+      ],
+      "name": "FS_UNMOUNT",
+      "param_count": 1,
+      "track": "xFS/Core",
+      "type": "instant"
+    },
+    "66": {
+      "arg_labels": [
+        "start_cluster"
+      ],
+      "name": "FILE_OPEN",
+      "param_count": 1,
+      "track": "xFS/File",
+      "type": "begin"
+    },
+    "67": {
+      "arg_labels": [
+        "entry_cluster"
+      ],
+      "name": "FILE_CREATE",
+      "param_count": 1,
+      "track": "xFS/File",
+      "type": "begin"
+    },
+    "68": {
+      "arg_labels": [
+        "start_cluster"
+      ],
+      "name": "FILE_CLOSE",
+      "param_count": 1,
+      "track": "xFS/File",
+      "type": "end"
+    },
+    "69": {
+      "arg_labels": [
+        "first_cluster"
+      ],
+      "name": "FILE_DELETE",
+      "param_count": 1,
+      "track": "xFS/File",
+      "type": "instant"
+    },
+    "70": {
+      "arg_labels": [
+        "position"
+      ],
+      "name": "FILE_SEEK",
+      "param_count": 1,
+      "track": "xFS/File",
+      "type": "instant"
+    },
+    "71": {
+      "arg_labels": [
+        "start_cluster"
+      ],
+      "name": "DIR_OPEN",
+      "param_count": 1,
+      "track": "xFS/Dir",
+      "type": "begin"
+    },
+    "72": {
+      "arg_labels": [
+        "current_cluster"
+      ],
+      "name": "DIR_CLOSE",
+      "param_count": 1,
+      "track": "xFS/Dir",
+      "type": "end"
+    },
+    "73": {
+      "arg_labels": [
+        "dir_cluster"
+      ],
+      "name": "DIR_CREATE",
+      "param_count": 1,
+      "track": "xFS/Dir",
+      "type": "instant"
+    },
+    "74": {
+      "arg_labels": [
+        "unused"
+      ],
+      "name": "DIR_DELETE",
+      "param_count": 1,
+      "track": "xFS/Dir",
+      "type": "instant"
+    },
+    "75": {
+      "arg_labels": [
+        "new_parent_cluster"
+      ],
+      "name": "FILE_RENAME",
+      "param_count": 1,
+      "track": "xFS/File",
+      "type": "instant"
+    },
+    "76": {
+      "arg_labels": [
+        "unused"
+      ],
+      "name": "FS_SYNC",
+      "param_count": 1,
+      "track": "xFS/Core",
+      "type": "instant"
+    },
+    "77": {
+      "arg_labels": [
+        "bytes_written"
+      ],
+      "name": "FILE_WRITE",
+      "param_count": 1,
+      "track": "xFS/IO",
+      "type": "counter"
+    },
+    "78": {
+      "arg_labels": [
+        "bytes_read"
+      ],
+      "name": "FILE_READ",
+      "param_count": 1,
+      "track": "xFS/IO",
+      "type": "counter"
+    },
+    "96": {
+      "arg_labels": [
+        "active_speed"
+      ],
+      "name": "BUS_RESET",
+      "param_count": 1,
+      "track": "xUSBD/Bus",
+      "type": "instant"
+    },
+    "97": {
+      "arg_labels": [
+        "active_speed"
+      ],
+      "name": "BUS_CONNECT",
+      "param_count": 1,
+      "track": "xUSBD/Bus",
+      "type": "instant"
+    },
+    "98": {
+      "arg_labels": [
+        "unused"
+      ],
+      "name": "BUS_DISCONNECT",
+      "param_count": 1,
+      "track": "xUSBD/Bus",
+      "type": "instant"
+    },
+    "99": {
+      "arg_labels": [
+        "address"
+      ],
+      "name": "SET_ADDRESS",
+      "param_count": 1,
+      "track": "xUSBD/Control",
+      "type": "instant"
+    }
+  },
+  "tasks": {
+    "30": "TimerDaemon"
+  },
+  "timestamp_hz": 1000000,
+  "version": 2
+}

@@ -1,0 +1,167 @@
+specification {
+  element person {
+    style {
+      shape person
+    }
+  }
+  element softwareSystem {
+    style {
+      shape system
+    }
+  }
+  element container {
+    style {
+      shape rectangle
+    }
+  }
+  element component {
+    style {
+      shape rectangle
+    }
+  }
+}
+
+model {
+  person developer "Embedded Developer" {
+    description "Develops application firmware and runs tests using the xSDK framework"
+  }
+
+  softwareSystem xsdk "xSDK Framework" {
+    description "An Embedded Software Development Kit providing RTOS, driver HAL, USB, FS, and networking stacks."
+
+    // Host Testing Environment
+    container host_env "Host Environment" {
+      description "Execution context for unit testing and local development on PC (Windows/Linux)."
+      technology "CMake, CTest, GCC/Clang, Host OS"
+
+      component xrtos_host "xRTOS (Host)" {
+        description "Real-Time OS scheduler compiled for Host execution."
+        technology "C"
+      }
+      component xrtos_port_fake "Fake Port" {
+        description "Faked implementation of RTOS context switching and critical sections using host threads."
+        technology "C, Posix/Windows Threads"
+      }
+      component host_tests "CTest Suite" {
+        description "Unit tests validating core OS, utilities, and driver models."
+        technology "C, CTest"
+      }
+
+      host_tests -> xrtos_host "Tests core features"
+      xrtos_host -> xrtos_port_fake "Uses faked port ops"
+    }
+
+    // QEMU Emulation Environment
+    container qemu_env "QEMU Emulation Environment" {
+      description "ARM Cortex-R5 virtual target execution environment."
+      technology "QEMU (qemu-system-arm), GDB, GCC ARM-None-Eabi"
+
+      component xrtos_qemu "xRTOS (QEMU)" {
+        description "Real-Time OS scheduler compiled for ARM Cortex-R5."
+        technology "C"
+      }
+      component xrtos_port_qemu_r5 "QEMU R5 Port" {
+        description "Low-level port implementing CPU context switching, interrupt control, and tick timer for QEMU target."
+        technology "C, Assembly"
+      }
+      component qemu_bin "QEMU Integration Tests" {
+        description "Elaborate multi-tasking tests executed inside the emulator."
+        technology "C, ELF Binary"
+      }
+
+      qemu_bin -> xrtos_qemu "Executes scheduler tasks"
+      xrtos_qemu -> xrtos_port_qemu_r5 "Uses hardware-specific port ops"
+    }
+
+    // Physical Hardware Environment
+    container target_hw_env "Target Hardware Environment" {
+      description "Bare-metal execution on physical silicon."
+      technology "AM243x (Cortex-R5), CH32H417 (RISC-V), etc."
+
+      component xrtos_hw "xRTOS (Hardware)" {
+        description "Real-Time OS scheduler running bare-metal."
+        technology "C"
+      }
+      component xrtos_port_hil "HIL Port" {
+        description "Hardware Interface Layer port matching the specific SoC architecture and timer modules."
+        technology "C, Assembly"
+      }
+      component xsdk_hal "xSDK HAL" {
+        description "Platform-agnostic Hardware Abstraction Layer API (SPI, UART, Timer, GPIO, etc.)."
+        technology "C"
+      }
+      component target_app "User Application" {
+        description "Custom application firmware running on bare-metal hardware."
+        technology "C"
+      }
+
+      target_app -> xrtos_hw "Creates tasks and synchronization objects"
+      target_app -> xsdk_hal "Performs peripheral I/O operations"
+      xrtos_hw -> xrtos_port_hil "Uses platform-specific port ops"
+      xrtos_port_hil -> xsdk_hal "Interacts with low-level timer/interrupt peripherals"
+    }
+
+    // Framework Stacks (Shared Across Environments)
+    component xusbd "xUSBD" {
+      description "USB Device Stack supporting various classes (CDC, MSC, HID)."
+      technology "C"
+    }
+    component xusbh "xUSBH" {
+      description "USB Host Controller driver and stack supporting hub/mass-storage."
+      technology "C"
+    }
+    component xfs "xFS" {
+      description "File System abstraction layer supporting FATFS, LittleFS, and raw access."
+      technology "C"
+    }
+    component xnet "xNet" {
+      description "Embedded Network socket interface and protocol stack integration."
+      technology "C"
+    }
+    component xshell "xShell" {
+      description "Interactive CLI terminal interface for diagnostics and control."
+      technology "C"
+    }
+    component xutil "xUtil" {
+      description "Common helper utilities, data structures, logging, and diagnostics."
+      technology "C"
+    }
+  }
+
+  // Cross-component relationships
+  developer -> host_env "Runs tests and builds binaries via CTest"
+  developer -> qemu_env "Runs emulator and debug sessions via GDB"
+  developer -> target_hw_env "Flashes and debugs firmware"
+
+  xfs -> xusbh "Uses USB MSC driver for storage block access"
+  xshell -> xsdk_hal "Uses UART HAL driver for console I/O"
+  xusbd -> xsdk_hal "Uses USB controller HAL driver for data transport"
+  xusbh -> xsdk_hal "Uses USB host controller HAL driver"
+  xnet -> xsdk_hal "Uses Ethernet/MAC HAL driver for frames"
+}
+
+views {
+  view system_context of xsdk {
+    title "xSDK System Context Diagram"
+    description "Overview of the xSDK framework and its execution environments."
+    include *
+  }
+
+  view host_container_view of host_env {
+    title "Host Development & Unit Testing Environment"
+    description "Components involved in running unit tests on local host PCs using the Fake Port."
+    include *
+  }
+
+  view qemu_container_view of qemu_env {
+    title "QEMU Emulation Environment (Cortex-R5)"
+    description "Components involved in running emulator-based tests without physical hardware."
+    include *
+  }
+
+  view target_container_view of target_hw_env {
+    title "Target Hardware & Application Execution"
+    description "Components and APIs utilized when running bare-metal on physical silicon targets."
+    include *
+  }
+}

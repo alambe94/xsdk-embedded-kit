@@ -1,0 +1,268 @@
+{
+  "_comment": "xRTOS name overlay. Task/object names that cannot be captured in-stream go here. Task names emitted via xRTOS_TRACE_NAME at object-creation time take precedence over this file. TimerDaemon (task_id=30) is created inside xRTOS_Kernel_Init before xRTOS_Kernel_Trace_Init is called, so its name cannot appear in-stream.",
+  "events": {
+    "32": {
+      "arg_labels": [
+        "first_task_id"
+      ],
+      "name": "KERNEL_START",
+      "param_count": 1,
+      "track": "xRTOS/Kernel",
+      "type": "instant"
+    },
+    "33": {
+      "arg_labels": [
+        "task_id",
+        "priority"
+      ],
+      "name": "TASK_CREATE",
+      "param_count": 2,
+      "track": "xRTOS/Task",
+      "type": "instant"
+    },
+    "34": {
+      "arg_labels": [
+        "prev_task_id",
+        "next_task_id"
+      ],
+      "name": "TASK_SWITCH",
+      "param_count": 2,
+      "track": "xRTOS/Task",
+      "type": "instant"
+    },
+    "35": {
+      "arg_labels": [
+        "task_id"
+      ],
+      "name": "TASK_READY",
+      "param_count": 1,
+      "track": "xRTOS/Task",
+      "type": "instant"
+    },
+    "36": {
+      "arg_labels": [
+        "task_id",
+        "wait_object_ptr"
+      ],
+      "name": "TASK_BLOCK",
+      "param_count": 2,
+      "track": "xRTOS/Task",
+      "type": "instant"
+    },
+    "37": {
+      "arg_labels": [
+        "task_id"
+      ],
+      "name": "TASK_EXIT",
+      "param_count": 1,
+      "track": "xRTOS/Task",
+      "type": "instant"
+    },
+    "38": {
+      "arg_labels": [
+        "task_id"
+      ],
+      "name": "TASK_TIMEOUT",
+      "param_count": 1,
+      "track": "xRTOS/Task",
+      "type": "instant"
+    },
+    "39": {
+      "arg_labels": [
+        "task_id",
+        "new_priority"
+      ],
+      "name": "TASK_PRIO",
+      "param_count": 2,
+      "track": "xRTOS/Task",
+      "type": "instant"
+    },
+    "40": {
+      "arg_labels": [
+        "target_task_id"
+      ],
+      "name": "TASK_NOTIFY",
+      "param_count": 1,
+      "track": "xRTOS/Task",
+      "type": "instant"
+    },
+    "41": {
+      "arg_labels": [
+        "tick_count"
+      ],
+      "name": "TICK",
+      "param_count": 1,
+      "track": "xRTOS/Tick",
+      "type": "counter"
+    },
+    "42": {
+      "arg_labels": [
+        "timer_id"
+      ],
+      "name": "TIMER_FIRE",
+      "param_count": 1,
+      "track": "xRTOS/Timer",
+      "type": "instant"
+    },
+    "43": {
+      "arg_labels": [
+        "count_after"
+      ],
+      "name": "SEM_GIVE",
+      "param_count": 1,
+      "track": "xRTOS/Sem",
+      "type": "counter"
+    },
+    "44": {
+      "arg_labels": [
+        "count_after"
+      ],
+      "name": "SEM_TAKE",
+      "param_count": 1,
+      "track": "xRTOS/Sem",
+      "type": "counter"
+    },
+    "45": {
+      "arg_labels": [
+        "owner_task_id"
+      ],
+      "name": "MUTEX_LOCK",
+      "param_count": 1,
+      "track": "xRTOS/Mutex",
+      "type": "begin"
+    },
+    "46": {
+      "arg_labels": [
+        "releasing_task_id"
+      ],
+      "name": "MUTEX_UNLOCK",
+      "param_count": 1,
+      "track": "xRTOS/Mutex",
+      "type": "end"
+    },
+    "47": {
+      "arg_labels": [
+        "prev_owner",
+        "new_owner"
+      ],
+      "name": "MUTEX_HANDOFF",
+      "param_count": 2,
+      "track": "xRTOS/Mutex",
+      "type": "instant"
+    },
+    "48": {
+      "arg_labels": [
+        "flags_after_or"
+      ],
+      "name": "EVENT_SET",
+      "param_count": 1,
+      "track": "xRTOS/Event",
+      "type": "instant"
+    },
+    "49": {
+      "arg_labels": [
+        "matched_flags"
+      ],
+      "name": "EVENT_WAIT",
+      "param_count": 1,
+      "track": "xRTOS/Event",
+      "type": "instant"
+    },
+    "50": {
+      "arg_labels": [
+        "used_count"
+      ],
+      "name": "QUEUE_SEND",
+      "param_count": 1,
+      "track": "xRTOS/Queue",
+      "type": "counter"
+    },
+    "51": {
+      "arg_labels": [
+        "used_count"
+      ],
+      "name": "QUEUE_RECV",
+      "param_count": 1,
+      "track": "xRTOS/Queue",
+      "type": "counter"
+    },
+    "52": {
+      "arg_labels": [
+        "timer_id"
+      ],
+      "name": "TIMER_START",
+      "param_count": 1,
+      "track": "xRTOS/Timer",
+      "type": "begin"
+    },
+    "53": {
+      "arg_labels": [
+        "timer_id"
+      ],
+      "name": "TIMER_STOP",
+      "param_count": 1,
+      "track": "xRTOS/Timer",
+      "type": "end"
+    },
+    "54": {
+      "arg_labels": [
+        "vector_num"
+      ],
+      "name": "ISR_ENTER",
+      "param_count": 1,
+      "track": "xRTOS/ISR",
+      "type": "begin"
+    },
+    "55": {
+      "arg_labels": [
+        "vector_num"
+      ],
+      "name": "ISR_EXIT",
+      "param_count": 1,
+      "track": "xRTOS/ISR",
+      "type": "end"
+    },
+    "56": {
+      "arg_labels": [
+        "task_id"
+      ],
+      "name": "STACK_CORRUPT",
+      "param_count": 1,
+      "track": "xRTOS/Task",
+      "type": "error"
+    },
+    "57": {
+      "arg_labels": [
+        "queue_ptr"
+      ],
+      "name": "QUEUE_FULL",
+      "param_count": 1,
+      "track": "xRTOS/Queue",
+      "type": "instant"
+    },
+    "58": {
+      "arg_labels": [
+        "sem_ptr"
+      ],
+      "name": "SEM_FULL",
+      "param_count": 1,
+      "track": "xRTOS/Sem",
+      "type": "instant"
+    },
+    "59": {
+      "arg_labels": [
+        "obj_type",
+        "obj_id"
+      ],
+      "name": "OBJECT_NAME",
+      "param_count": 2,
+      "track": "xRTOS/Names",
+      "type": "instant"
+    }
+  },
+  "tasks": {
+    "30": "TimerDaemon"
+  },
+  "timestamp_hz": 1000000,
+  "version": 2
+}

@@ -1,0 +1,188 @@
+{
+  "_comment": "Example xTrace event dictionary. Event keys are packed as (module << 16) | (group << 8) | event.",
+  "timestamp_hz": 1000000,
+
+  "_modules": {
+    "0x0001": "xI2C",
+    "0x0002": "xSPI",
+    "0x0003": "RTOS",
+    "0x0004": "xUSBD",
+    "0x0005": "xFS"
+  },
+
+  "events": {
+    "0x00010201": {
+      "name": "I2C_INIT",
+      "type": "instant",
+      "track": "I2C",
+      "arg_label": "unused"
+    },
+    "0x00010202": {
+      "name": "I2C_START",
+      "type": "instant",
+      "track": "I2C",
+      "arg_label": "unused"
+    },
+    "0x00010203": {
+      "name": "I2C_STOP",
+      "type": "instant",
+      "track": "I2C",
+      "arg_label": "unused"
+    },
+    "0x00010204": {
+      "name": "I2C_ABORT",
+      "type": "instant",
+      "track": "I2C",
+      "arg_label": "unused"
+    },
+
+    "0x00010501": {
+      "name": "I2C_TX_START",
+      "type": "begin",
+      "track": "I2C",
+      "arg_label": "addr"
+    },
+    "0x00010502": {
+      "name": "I2C_TX_END",
+      "type": "end",
+      "track": "I2C",
+      "arg_label": "bytes"
+    },
+    "0x00010601": {
+      "name": "I2C_RX_START",
+      "type": "begin",
+      "track": "I2C",
+      "arg_label": "addr"
+    },
+    "0x00010602": {
+      "name": "I2C_RX_END",
+      "type": "end",
+      "track": "I2C",
+      "arg_label": "bytes"
+    },
+
+    "0x00010401": {
+      "name": "I2C_ERROR",
+      "type": "error",
+      "track": "I2C",
+      "arg_label": "error_code"
+    },
+    "0x00010402": {
+      "name": "I2C_NACK",
+      "type": "error",
+      "track": "I2C",
+      "arg_label": "addr"
+    },
+    "0x00010403": {
+      "name": "I2C_ARB_LOST",
+      "type": "error",
+      "track": "I2C",
+      "arg_label": "unused"
+    },
+    "0x00010404": {
+      "name": "I2C_TIMEOUT",
+      "type": "error",
+      "track": "I2C",
+      "arg_label": "timeout_ms"
+    },
+    "0x00010405": {
+      "name": "I2C_BUS_ERROR",
+      "type": "error",
+      "track": "I2C",
+      "arg_label": "unused"
+    },
+
+    "0x00020501": {
+      "name": "SPI_TX_START",
+      "type": "begin",
+      "track": "SPI",
+      "arg_label": "length"
+    },
+    "0x00020502": {
+      "name": "SPI_TX_END",
+      "type": "end",
+      "track": "SPI",
+      "arg_label": "length"
+    },
+
+    "0x00030201": {
+      "name": "TASK_SWITCH",
+      "type": "instant",
+      "track": "RTOS",
+      "arg_label": "task_id"
+    },
+    "0x00030301": {
+      "name": "CPU_LOAD",
+      "type": "counter",
+      "track": "System",
+      "arg_label": "percent"
+    },
+
+    "0x00050201": {
+      "name": "XFS_MOUNT",
+      "type": "instant",
+      "track": "xFS",
+      "arg_label": "root_dir_cluster"
+    },
+    "0x00050202": {
+      "name": "XFS_UNMOUNT",
+      "type": "instant",
+      "track": "xFS",
+      "arg_label": "unused"
+    },
+    "0x00050203": {
+      "name": "XFS_FILE_OPEN",
+      "type": "instant",
+      "track": "xFS",
+      "arg_label": "start_cluster"
+    },
+    "0x00050204": {
+      "name": "XFS_FILE_CREATE",
+      "type": "instant",
+      "track": "xFS",
+      "arg_label": "entry_cluster"
+    },
+    "0x00050205": {
+      "name": "XFS_FILE_CLOSE",
+      "type": "instant",
+      "track": "xFS",
+      "arg_label": "start_cluster"
+    },
+    "0x00050206": {
+      "name": "XFS_FILE_DELETE",
+      "type": "instant",
+      "track": "xFS",
+      "arg_label": "first_cluster"
+    },
+    "0x00050207": {
+      "name": "XFS_FILE_SEEK",
+      "type": "instant",
+      "track": "xFS",
+      "arg_label": "position"
+    },
+    "0x00050208": {
+      "name": "XFS_DIR_OPEN",
+      "type": "instant",
+      "track": "xFS",
+      "arg_label": "start_cluster"
+    },
+    "0x00050209": {
+      "name": "XFS_DIR_CLOSE",
+      "type": "instant",
+      "track": "xFS",
+      "arg_label": "current_cluster"
+    },
+    "0x00050501": {
+      "name": "XFS_FILE_WRITE",
+      "type": "counter",
+      "track": "xFS",
+      "arg_label": "bytes_written"
+    },
+    "0x00050601": {
+      "name": "XFS_FILE_READ",
+      "type": "counter",
+      "track": "xFS",
+      "arg_label": "bytes_read"
+    }
+  }
+}

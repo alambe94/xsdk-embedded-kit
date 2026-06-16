@@ -1,0 +1,28 @@
+name: MISRA C:2012
+
+on:
+  workflow_dispatch:
+
+jobs:
+  misra:
+    name: MISRA C:2012 (Mandatory + Required)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install cppcheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cppcheck python3
+
+      - name: Run MISRA C:2012 check
+        run: python3 tools/xsdk.py misra --report misra-report.txt
+
+      - name: Upload MISRA report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: misra-report
+          path: misra-report.txt

@@ -1,0 +1,28 @@
+name: Documentation Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  doxygen:
+    name: Doxygen
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Doxygen
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y doxygen
+
+      - name: Build documentation
+        run: python3 tools/xsdk.py docs --fail-on-warnings
+
+      - name: Archive documentation
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdk-docs
+          path: build/docs/html

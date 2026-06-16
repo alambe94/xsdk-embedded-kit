@@ -1,0 +1,104 @@
+[
+  {
+    "rule": "section-order",
+    "path": "src/components/xusbd/port/hil/am64x/am64x_phy.h",
+    "reason": "Legacy AM64x port header section order predates the policy checker; normalize during port cleanup.",
+    "owner": "xusb"
+  },
+  {
+    "rule": "section-order",
+    "path": "src/components/xusbd/port/hil/am64x/xusbd_drv.h",
+    "reason": "Legacy AM64x port header section order predates the policy checker; normalize during port cleanup.",
+    "owner": "xusb"
+  },
+  {
+    "rule": "section-order",
+    "path": "src/components/xusbd/examples/hid_keyboard/xusb_hid_keys.h",
+    "reason": "Legacy xUSB reference-example header section order predates the policy checker; normalize during example cleanup.",
+    "owner": "xusb"
+  },
+  {
+    "rule": "section-order",
+    "path": "src/components/xusbd/examples/cdc_acm/xusbd_cdc_acm_example.h",
+    "reason": "Legacy xUSB reference-example header section order predates the policy checker; normalize during example cleanup.",
+    "owner": "xusb"
+  },
+  {
+    "rule": "section-order",
+    "path": "src/components/xusbd/examples/msc_ramdisk/xusbd_msc_ramdisk_example.h",
+    "reason": "Legacy xUSB reference-example header section order predates the policy checker; normalize during example cleanup.",
+    "owner": "xusb"
+  },
+  {
+    "rule": "section-order",
+    "path": "src/components/xusbd/examples/dfu_runtime/xusbd_dfu_runtime_example.h",
+    "reason": "Legacy xUSB reference-example header section order predates the policy checker; normalize during example cleanup.",
+    "owner": "xusb"
+  },
+  {
+    "rule": "section-order",
+    "path": "src/components/xusbd/examples/winusb/xusbd_winusb_example.h",
+    "reason": "Legacy xUSB reference-example header section order predates the policy checker; normalize during example cleanup.",
+    "owner": "xusb"
+  },
+  {
+    "rule": "section-order",
+    "path": "src/components/xusbd/include/xusbd_config.h",
+    "reason": "Legacy xUSB device support header section order predates the policy checker; normalize during header cleanup.",
+    "owner": "xusb"
+  },
+  {
+    "rule": "section-order",
+    "path": "src/components/xusbd/include/xusbd_return.h",
+    "reason": "Legacy xUSB device support header section order predates the policy checker; normalize during header cleanup.",
+    "owner": "xusb"
+  },
+  {
+    "rule": "file-eof-footer",
+    "path": "src/components/xusbd/tests/fake/test_bus_events.c",
+    "reason": "Legacy Unity test file predates the xSDK source template; normalize during test cleanup.",
+    "owner": "xusb"
+  },
+  {
+    "rule": "file-eof-footer",
+    "path": "src/components/xusbd/tests/fake/test_class_registration.c",
+    "reason": "Legacy Unity test file predates the xSDK source template; normalize during test cleanup.",
+    "owner": "xusb"
+  },
+  {
+    "rule": "file-eof-footer",
+    "path": "src/components/xusbd/tests/fake/test_descriptor.c",
+    "reason": "Legacy Unity test file predates the xSDK source template; normalize during test cleanup.",
+    "owner": "xusb"
+  },
+  {
+    "rule": "file-eof-footer",
+    "path": "src/components/xusbd/tests/fake/test_helpers.h",
+    "reason": "Legacy Unity test helper predates the xSDK source template; normalize during test cleanup.",
+    "owner": "xusb"
+  },
+  {
+    "rule": "file-eof-footer",
+    "path": "src/components/xusbd/tests/fake/test_init.c",
+    "reason": "Legacy Unity test file predates the xSDK source template; normalize during test cleanup.",
+    "owner": "xusb"
+  },
+  {
+    "rule": "file-eof-footer",
+    "path": "src/components/xusbd/tests/fake/test_routing.c",
+    "reason": "Legacy Unity test file predates the xSDK source template; normalize during test cleanup.",
+    "owner": "xusb"
+  },
+  {
+    "rule": "file-eof-footer",
+    "path": "src/components/xusbd/tests/fake/test_standard_requests.c",
+    "reason": "Legacy Unity test file predates the xSDK source template; normalize during test cleanup.",
+    "owner": "xusb"
+  },
+  {
+    "rule": "module-layout",
+    "path": "src/components/xrtos/port/arm_r5",
+    "reason": "Unified ARM Cortex-R5 port directory shared between QEMU and HIL targets.",
+    "owner": "xrtos"
+  }
+]

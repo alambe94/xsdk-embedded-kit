@@ -1,0 +1,75 @@
+# xSDK manifest - TI MCU+ SDK paths used from mcupsdk_core
+#
+# Repository: https://github.com/TexasInstruments/mcupsdk-core
+# Branch:     release/am64x_am243x_am273x/11.02.00
+# Commit:     6949c8057336cb59915ca51340cdafa6a7960126
+#
+# Format: one path per line, relative to mcupsdk_core/.
+# Update this file whenever a new path is consumed by xSDK.
+
+# Boot signing scripts and degenerate ROM key (HS-FS development signing)
+source/security/security_common/tools/boot/signing/appimage_x509_cert_gen.py
+source/security/security_common/tools/boot/signing/rom_image_gen.py
+source/security/security_common/tools/boot/signing/rom_degenerateKey.pem
+
+# Boot image conversion tools
+tools/boot/out2rprc/out2rprc.js
+tools/boot/multicoreImageGen/multicoreImageGen.js
+
+# SBL example main.c files (SysConfig-generated files are NOT used)
+examples/drivers/boot/sbl_null/am243x-lp/r5fss0-0_nortos/ti-arm-clang/main.c
+examples/drivers/boot/sbl_ospi/am243x-lp/r5fss0-0_nortos/ti-arm-clang/main.c
+examples/drivers/boot/sbl_uart/am243x-lp/r5fss0-0_nortos/ti-arm-clang/main.c
+
+# Bootloader driver source
+source/drivers/bootloader/bootloader.c
+source/drivers/bootloader/bootloader_mem.c
+source/drivers/bootloader/bootloader_priv.h
+source/drivers/bootloader/soc/am64x_am243x/bootloader_soc.c
+
+# Sciclient (TISCI) source - Phase 5+, not yet built by xSDK
+source/drivers/sciclient/sciclient.c
+source/drivers/sciclient/sciclient_pm.c
+source/drivers/sciclient/sciclient_rm.c
+source/drivers/sciclient/sciclient_procboot.c
+source/drivers/sciclient/sciclient_boardcfg.c
+source/drivers/sciclient/csl_sec_proxy.c
+source/drivers/sciclient/soc/am64x_am243x/
+
+# Board configuration binary (TISCI boardcfg blob, not rebuilt by xSDK)
+source/drivers/sciclient/sciclient_default_boardcfg/am243x/boardcfg_blob.bin
+
+# SYSFW binaries (TI-provided, not built by xSDK, consumed by rom_image_gen.py)
+source/drivers/sciclient/soc/am64x_am243x/sysfw-hs-fs-enc.bin
+source/drivers/sciclient/soc/am64x_am243x/sysfw-hs-fs-enc-cert.bin
+
+# DPL headers (used by SBL/sciclient build, not by standalone xRTOS runtime)
+source/kernel/dpl/HwiP.h
+source/kernel/dpl/SemaphoreP.h
+source/kernel/dpl/ClockP.h
+source/kernel/dpl/DebugP.h
+source/kernel/dpl/SystemP.h
+source/kernel/dpl/CacheP.h
+source/kernel/dpl/MpuP_armv7.h
+source/kernel/dpl/CycleCounterP.h
+
+# NoRTOS DPL source (used by SBL build via xsdk_sbl_board_init.c)
+source/kernel/nortos/dpl/common/SemaphoreP_nortos.c
+source/kernel/nortos/dpl/common/ClockP_nortos.c
+source/kernel/nortos/dpl/common/HeapP_nortos.c
+source/kernel/nortos/dpl/common/DebugP_nortos.c
+source/kernel/nortos/dpl/r5/HwiP_armv7r_vim.c
+source/kernel/nortos/dpl/r5/HwiP_armv7r_vectors_nortos_sbl_asm.S
+source/kernel/nortos/dpl/r5/HwiP_armv7r_handlers_nortos.c
+source/kernel/nortos/dpl/r5/HwiP_armv7r_asm.S
+source/kernel/nortos/dpl/r5/ClockP_nortos_r5.c
+source/kernel/nortos/dpl/r5/CacheP_armv7r.c
+source/kernel/nortos/dpl/r5/CacheP_armv7r_asm.S
+source/kernel/nortos/dpl/r5/MpuP_armv7r.c
+source/kernel/nortos/dpl/r5/MpuP_armv7r_asm.S
+source/kernel/nortos/dpl/r5/boot_armv7r.c
+source/kernel/nortos/dpl/r5/boot_armv7r_asm.S
+
+# AM243x SOC MMR / CTRL constants (header only, used to derive xsdk_soc_mmr.h values)
+source/drivers/soc/am64x_am243x/soc.c
+source/drivers/hw_include/am64x_am243x/cslr_soc_baseaddress.h

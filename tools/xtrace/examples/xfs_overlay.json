@@ -1,0 +1,4 @@
+{
+  "_comment": "xFS v2 event dictionary. Keys are decimal event IDs matching xFS_TRACE_CODE_* in xfs_trace.h.",
+  "timestamp_hz": 1000000
+}

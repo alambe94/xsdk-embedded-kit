@@ -1,0 +1,55 @@
+---
+Language: Cpp
+BasedOnStyle: LLVM
+
+# Indentation
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+IndentCaseLabels: false
+
+# Braces - Allman style: opening brace always on its own line
+BreakBeforeBraces: Allman
+
+# Line length - 140 columns (fits two files side-by-side on 1080p)
+ColumnLimit: 140
+
+# Pointer alignment - right: uint8_t *ptr (not uint8_t* ptr)
+PointerAlignment: Right
+
+# Parameter / argument alignment - align to opening parenthesis when wrapping
+AlignAfterOpenBracket: Align
+BinPackParameters: false
+BinPackArguments: true
+AllowAllParametersOfDeclarationOnNextLine: false
+
+# Short constructs - never collapse onto a single line
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortFunctionsOnASingleLine: None
+AllowShortBlocksOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+
+# Spacing
+SpaceBeforeParens: ControlStatements
+SpaceAfterCStyleCast: false
+
+# const placement - enforce west-const: const uint8_t * (not uint8_t const *)
+QualifierAlignment: Left
+
+# Braces - insert braces around all control structure bodies
+InsertBraces: true
+
+# Includes - preserve manual grouping order
+SortIncludes: Never
+
+# Comments - do not reflow (preserves license block formatting)
+ReflowComments: false
+
+# Alignment
+AlignConsecutiveMacros: Consecutive
+AlignTrailingComments: true
+AlignEscapedNewlines: Right
+
+# Empty lines
+MaxEmptyLinesToKeep: 1
+KeepEmptyLinesAtTheStartOfBlocks: false

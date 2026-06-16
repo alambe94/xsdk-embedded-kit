@@ -1,0 +1,33 @@
+{
+  "registry": "src/components/xutil/xtrace/include/xtrace_registry.h",
+  "dictionaries": [
+    {
+      "name": "xrtos",
+      "header": "src/components/xrtos/include/xrtos_trace.h",
+      "prefix": "xRTOS_TRACE_CODE_",
+      "overlay": "tools/xtrace/examples/xrtos_overlay.json",
+      "output": "xrtos_dictionary.json",
+      "min_id": 32,
+      "max_id": 63
+    },
+    {
+      "name": "xfs",
+      "header": "src/components/xfs/include/xfs_trace.h",
+      "prefix": "xFS_TRACE_CODE_",
+      "overlay": "tools/xtrace/examples/xfs_overlay.json",
+      "output": "xfs_dictionary.json",
+      "min_id": 64,
+      "max_id": 95
+    },
+    {
+      "name": "xusbd",
+      "header": "src/components/xusbd/include/xusbd_trace.h",
+      "prefix": "xUSBD_TRACE_CODE_",
+      "overlay": "tools/xtrace/examples/xusbd_overlay.json",
+      "output": "xusbd_dictionary.json",
+      "min_id": 96,
+      "max_id": 127
+    }
+  ],
+  "combined_output": "sdk_dictionary.json"
+}

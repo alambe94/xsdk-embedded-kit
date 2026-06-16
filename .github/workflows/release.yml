@@ -1,0 +1,56 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    name: Build and publish release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build gcc-arm-none-eabi doxygen
+
+      - name: Validate release version
+        id: version
+        run: python3 tools/release_package.py version --tag "${{ github.ref_name }}" --github-output "$GITHUB_OUTPUT"
+
+      - name: Build and test host targets
+        run: python3 tools/xsdk.py ci host-ci
+
+      - name: Build Cortex-R5 targets
+        run: python3 tools/xsdk.py cross-build r5-gcc
+
+      - name: Build documentation
+        run: python3 tools/xsdk.py docs
+
+      - name: Package SDK artifact
+        id: package
+        run: python3 tools/release_package.py package --version "${{ steps.version.outputs.version }}" --github-output "$GITHUB_OUTPUT"
+
+      - name: Generate changelog
+        run: python3 tools/release_package.py changelog --ref "${{ github.ref_name }}"
+
+      - name: Create GitHub release
+        # Pinned to a specific version tag; upgrade intentionally and verify the diff.
+        # For maximum supply-chain safety, replace the version tag with the commit SHA.
+        uses: softprops/action-gh-release@v2.3.2
+        with:
+          name: xSDK ${{ steps.version.outputs.version }}
+          body_path: changelog.md
+          files: ${{ steps.package.outputs.archive }}
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}

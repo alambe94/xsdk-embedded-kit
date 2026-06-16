@@ -1,0 +1,265 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 21,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "host-base",
+      "hidden": true,
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "gcc",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+        "xSDK_BUILD_TESTS": true,
+        "xSDK_BUILD_XUSB_DEVICE": true,
+        "xSDK_BUILD_XUSB_HOST": false,
+        "xSDK_ENABLE_ASSERT": true
+      }
+    },
+    {
+      "name": "host-dev",
+      "displayName": "Host development",
+      "description": "Configure the host build with tests and developer-friendly warnings.",
+      "inherits": "host-base",
+      "binaryDir": "${sourceDir}/build/host",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "xSDK_BUILD_XUSB_HOST": true,
+        "xSDK_WARNINGS_AS_ERRORS": true
+      }
+    },
+    {
+      "name": "host-ci",
+      "displayName": "Host CI",
+      "description": "Configure the host build with warnings treated as errors.",
+      "inherits": "host-base",
+      "binaryDir": "${sourceDir}/build/host-ci",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "xSDK_WARNINGS_AS_ERRORS": true
+      }
+    },
+    {
+      "name": "host-sanitizers",
+      "displayName": "Host sanitizers",
+      "description": "Configure the host build with address and undefined-behavior sanitizers.",
+      "inherits": "host-base",
+      "binaryDir": "${sourceDir}/build/sanitizers",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "xSDK_SANITIZERS": true,
+        "xSDK_WARNINGS_AS_ERRORS": true
+      }
+    },
+    {
+      "name": "host-coverage",
+      "displayName": "Host coverage",
+      "description": "Configure the host build with coverage instrumentation.",
+      "inherits": "host-base",
+      "binaryDir": "${sourceDir}/build/coverage",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "xSDK_COVERAGE": true,
+        "xSDK_BUILD_XUSB_HOST": true,
+        "xSDK_WARNINGS_AS_ERRORS": false
+      }
+    },
+    {
+      "name": "host-analysis",
+      "displayName": "Host static analysis",
+      "description": "Generate a host compile database for static analysis.",
+      "inherits": "host-base",
+      "binaryDir": "${sourceDir}/build/host-analysis",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "xSDK_WARNINGS_AS_ERRORS": false
+      }
+    },
+    {
+      "name": "library-only",
+      "displayName": "Library-only host build",
+      "description": "Build SDK libraries without tests, applications, or examples.",
+      "inherits": "host-base",
+      "binaryDir": "${sourceDir}/build/library-only",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "xSDK_BUILD_APPLICATIONS": false,
+        "xSDK_BUILD_EXAMPLES": false,
+        "xSDK_BUILD_TESTS": false,
+        "xSDK_WARNINGS_AS_ERRORS": true
+      }
+    },
+    {
+      "name": "target-base",
+      "hidden": true,
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "xSDK_BUILD_TESTS": false,
+        "xSDK_BUILD_XUSB_DEVICE": true,
+        "xSDK_BUILD_XUSB_HOST": false,
+        "xSDK_WARNINGS_AS_ERRORS": true
+      }
+    },
+    {
+      "name": "r5-gcc",
+      "displayName": "Cortex-R5 GCC",
+      "inherits": "target-base",
+      "binaryDir": "${sourceDir}/build/r5-gcc",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/r5-gcc.cmake"
+    },
+    {
+      "name": "r5-ticlang",
+      "displayName": "Cortex-R5 TI Arm Clang",
+      "inherits": "target-base",
+      "binaryDir": "${sourceDir}/build/r5-ticlang",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/r5-ticlang.cmake"
+    },
+    {
+      "name": "am243x-ticlang",
+      "displayName": "AM243x TI Arm Clang",
+      "inherits": "target-base",
+      "binaryDir": "${sourceDir}/build/am243x-ticlang",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/am243x-ticlang.cmake"
+    },
+    {
+      "name": "ch32h417-riscv-gcc",
+      "displayName": "CH32H417 V5F RISC-V GCC bring-up",
+      "description": "Build the minimal CH32H417 V5F bring-up ELF.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/ch32h417-riscv-gcc",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/ch32h417-riscv-gcc.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_MAKE_PROGRAM": "${sourceDir}/tools/cmake/bin/ninja.exe",
+        "xSDK_BUILD_TESTS": false,
+        "xSDK_WARNINGS_AS_ERRORS": true
+      }
+    },
+    {
+      "name": "qemu-r5",
+      "displayName": "Cortex-R5 QEMU",
+      "description": "Configure Cortex-R5 QEMU smoke tests.",
+      "inherits": "r5-gcc",
+      "binaryDir": "${sourceDir}/build/qemu",
+      "cacheVariables": {
+        "xSDK_BUILD_XUSB_HOST": true,
+        "xSDK_GENERATE_TRACE_DICTIONARIES": false
+      }
+    },
+    {
+      "name": "qemu-r5-trace",
+      "displayName": "Cortex-R5 QEMU trace",
+      "description": "Configure Cortex-R5 QEMU trace tests and dictionaries.",
+      "inherits": "qemu-r5",
+      "binaryDir": "${sourceDir}/build/qemu-trace",
+      "cacheVariables": {
+        "xSDK_ENABLE_ASSERT": true,
+        "xSDK_GENERATE_TRACE_DICTIONARIES": true
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "host-dev",
+      "configurePreset": "host-dev"
+    },
+    {
+      "name": "host-ci",
+      "configurePreset": "host-ci"
+    },
+    {
+      "name": "host-sanitizers",
+      "configurePreset": "host-sanitizers"
+    },
+    {
+      "name": "host-coverage",
+      "configurePreset": "host-coverage"
+    },
+    {
+      "name": "library-only",
+      "configurePreset": "library-only"
+    },
+    {
+      "name": "r5-gcc",
+      "configurePreset": "r5-gcc"
+    },
+    {
+      "name": "r5-ticlang",
+      "configurePreset": "r5-ticlang"
+    },
+    {
+      "name": "am243x-ticlang",
+      "configurePreset": "am243x-ticlang"
+    },
+    {
+      "name": "ch32h417-riscv-gcc",
+      "configurePreset": "ch32h417-riscv-gcc"
+    },
+    {
+      "name": "qemu-r5",
+      "configurePreset": "qemu-r5"
+    },
+    {
+      "name": "qemu-r5-trace",
+      "configurePreset": "qemu-r5-trace"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "host-dev",
+      "configurePreset": "host-dev",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "host-ci",
+      "configurePreset": "host-ci",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "host-sanitizers",
+      "configurePreset": "host-sanitizers",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "host-coverage",
+      "configurePreset": "host-coverage",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "qemu-r5",
+      "configurePreset": "qemu-r5",
+      "filter": {
+        "exclude": {
+          "label": "trace"
+        }
+      },
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "qemu-r5-trace",
+      "configurePreset": "qemu-r5-trace",
+      "filter": {
+        "include": {
+          "label": "trace"
+        }
+      },
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
+}

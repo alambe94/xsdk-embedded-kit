@@ -1,0 +1,5 @@
+[codespell]
+skip = build,tools/gcc,tools/cmake,tools/llvm,tools/arm_gcc,tools/tiarmclang,tools/openocd,tools/doxygen,tools/.cache,*.html,*.xml,*.json,*.a,*.o,*.gcda,*.gcno,*.gcov
+quiet-level = 3
+count = true
+ignore-words-list = tha,smpt,te,assertIn,HSI,hart,ore

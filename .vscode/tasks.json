@@ -1,0 +1,44 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "xSDK: build AM243x bringup (TI clang)",
+            "type": "shell",
+            "command": "${workspaceFolder}/xsdk.bat",
+            "args": [
+                "am243x-ticlang"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "xSDK: OpenOCD AM243x R5FSS0-0",
+            "type": "shell",
+            "command": "${workspaceFolder}/tools/openocd/bin/openocd.exe",
+            "args": [
+                "-s",
+                "${workspaceFolder}/tools/openocd/openocd/scripts",
+                "-f",
+                "${workspaceFolder}/tools/gdb/xsdk_openocd_am243x.cfg"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "xSDK: GDB AM243x bringup",
+            "type": "shell",
+            "command": "${workspaceFolder}/tools/arm_gcc/bin/arm-none-eabi-gdb.exe",
+            "args": [
+                "${workspaceFolder}/build/am243x-ticlang/src/applications/am243x_bringup/am243x_bringup.out"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        }
+    ]
+}

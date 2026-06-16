@@ -1,0 +1,91 @@
+name: SDK Checks
+
+on:
+  workflow_dispatch:
+
+jobs:
+  patch-hygiene:
+    name: Patch hygiene
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check patch hygiene
+        run: python3 tools/xsdk.py patch-hygiene
+
+  markdown-lint:
+    name: Markdown lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Lint Markdown files
+        uses: DavidAnson/markdownlint-cli2-action@v16
+        with:
+          globs: '**/*.md'
+
+  clang-format:
+    name: C/C++ formatting
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install clang-format
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-format-18
+
+      - name: Check formatting
+        run: python3 tools/xsdk.py format check
+
+  policy-check:
+    name: xSDK policy check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run policy check
+        run: python3 tools/xsdk.py policy
+
+      - name: Run mojibake check
+        run: python3 tools/xsdk_mojibake_check.py --verbose
+
+  spell-check:
+    name: Spell check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install codespell
+        run: pip install codespell==2.3.0
+
+      - name: Run spell check
+        run: python3 tools/xsdk.py spell
+
+  cmake-configure:
+    name: CMake host configure
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build
+
+      - name: Configure host build
+        run: python3 tools/xsdk.py configure host-ci

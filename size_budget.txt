@@ -1,0 +1,10 @@
+# xSDK library size budgets (bytes)
+# Format: library=text_max,data_max,bss_max
+#
+# Baseline measured 2025-05 with arm-none-eabi-gcc 9.3.1 -mcpu=cortex-r5 -mfpu=vfpv3-d16 -mfloat-abi=hard
+# Budgets set at ~150% of baseline to allow growth without silent regressions.
+#
+# Baseline:   libxusbd.a      text=45953  data=364   bss=25
+#             libxe_sdk_utils text=2272   data=0     bss=0
+libxusbd.a=65536,2048,1024
+libxe_sdk_utils.a=8192,256,256

@@ -1,0 +1,42 @@
+# xSDK Doxygen configuration
+# Run: doxygen Doxyfile  (from the repo root)
+# Output: build/docs/html/index.html
+
+PROJECT_NAME           = "xSDK"
+PROJECT_BRIEF          = "eXtensible Embedded SDK"
+OUTPUT_DIRECTORY       = build/docs
+
+# Input - public headers only; exclude ports, examples, and tests
+INPUT                  = src/components
+RECURSIVE              = YES
+FILE_PATTERNS          = *.h
+EXCLUDE_PATTERNS       = */port/* \
+                         */examples/* \
+                         */tests/*
+
+# Extract only documented symbols.
+# Set WARN_IF_UNDOCUMENTED = YES and WARN_AS_ERROR = YES once
+# Doxygen comments have been added to the public headers.
+EXTRACT_ALL            = YES
+WARN_IF_UNDOCUMENTED   = NO
+WARN_AS_ERROR          = NO
+QUIET                  = YES
+WARNINGS               = YES
+WARN_LOGFILE           = doxygen_warnings.txt
+
+# Output formats
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+HTML_OUTPUT            = html
+
+# Diagrams - requires Graphviz (dot); set to NO if not available
+HAVE_DOT               = NO
+CALL_GRAPH             = NO
+CALLER_GRAPH           = NO
+
+# Source browsing
+SOURCE_BROWSER         = NO
+INLINE_SOURCES         = NO
+
+# Strip internal path prefix from file names in the output
+STRIP_FROM_PATH        = src/components

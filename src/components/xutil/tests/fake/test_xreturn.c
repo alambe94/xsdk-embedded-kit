@@ -1,0 +1,137 @@
+// Copyright 2022 alambe94
+
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+
+//     http://www.apache.org/licenses/LICENSE-2.0
+
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// @file test_xreturn.c
+// @brief Host tests for SDK-wide return-code packing helpers.
+
+#include <stdint.h>
+
+#include "unity.h"
+
+#include "xreturn.h"
+
+void setUp(void)
+{
+}
+
+void tearDown(void)
+{
+}
+
+void test_make_packs_module_severity_and_code(void)
+{
+    xRETURN_t ret = xRETURN_MAKE(0x1234U, xRETURN_SEVERITY_ERROR, 0x0055U);
+
+    TEST_ASSERT_EQUAL_UINT32(0x1234U, xRETURN_GET_MODULE(ret));
+    TEST_ASSERT_EQUAL_UINT32(xRETURN_SEVERITY_ERROR, xRETURN_GET_SEVERITY(ret));
+    TEST_ASSERT_EQUAL_UINT32(0x0055U, xRETURN_GET_CODE(ret));
+}
+
+void test_make_masks_severity_and_code_fields(void)
+{
+    xRETURN_t ret = xRETURN_MAKE(0x0007U, 0x0007U, 0xFFFFU);
+
+    TEST_ASSERT_EQUAL_UINT32(0x0007U, xRETURN_GET_MODULE(ret));
+    TEST_ASSERT_EQUAL_UINT32(0x0003U, xRETURN_GET_SEVERITY(ret));
+    TEST_ASSERT_EQUAL_UINT32(0x3FFFU, xRETURN_GET_CODE(ret));
+}
+
+void test_ok_value_is_zero_and_not_an_error(void)
+{
+    TEST_ASSERT_EQUAL_UINT32(0U, xRETURN_OK);
+    TEST_ASSERT_TRUE(xRETURN_IS_OK(xRETURN_OK));
+    TEST_ASSERT_FALSE(xRETURN_IS_ERROR(xRETURN_OK));
+    TEST_ASSERT_FALSE(xRETURN_IS_WARNING(xRETURN_OK));
+    TEST_ASSERT_FALSE(xRETURN_IS_MESSAGE(xRETURN_OK));
+}
+
+void test_severity_predicates_identify_non_ok_results(void)
+{
+    xRETURN_t error = xRETURN_MAKE(0x0001U, xRETURN_SEVERITY_ERROR, 0x0001U);
+    xRETURN_t warning = xRETURN_MAKE(0x0001U, xRETURN_SEVERITY_WARNING, 0x0002U);
+    xRETURN_t message = xRETURN_MAKE(0x0001U, xRETURN_SEVERITY_MESSAGE, 0x0003U);
+
+    TEST_ASSERT_TRUE(xRETURN_IS_ERROR(error));
+    TEST_ASSERT_FALSE(xRETURN_IS_WARNING(error));
+    TEST_ASSERT_FALSE(xRETURN_IS_MESSAGE(error));
+
+    TEST_ASSERT_FALSE(xRETURN_IS_ERROR(warning));
+    TEST_ASSERT_TRUE(xRETURN_IS_WARNING(warning));
+    TEST_ASSERT_FALSE(xRETURN_IS_MESSAGE(warning));
+
+    TEST_ASSERT_FALSE(xRETURN_IS_ERROR(message));
+    TEST_ASSERT_FALSE(xRETURN_IS_WARNING(message));
+    TEST_ASSERT_TRUE(xRETURN_IS_MESSAGE(message));
+}
+
+void test_registered_module_ids_are_unique(void)
+{
+    TEST_ASSERT_NOT_EQUAL(xRETURN_xUSBD_MODULE, xRETURN_xFS_MODULE);
+    TEST_ASSERT_NOT_EQUAL(xRETURN_xUSBD_MODULE, xRETURN_xTRACE_MODULE);
+    TEST_ASSERT_NOT_EQUAL(xRETURN_xUSBD_MODULE, xRETURN_xRTOS_MODULE);
+    TEST_ASSERT_NOT_EQUAL(xRETURN_xUSBD_MODULE, xRETURN_xFAULT_MODULE);
+    TEST_ASSERT_NOT_EQUAL(xRETURN_xUSBD_MODULE, xRETURN_xSHELL_MODULE);
+    TEST_ASSERT_NOT_EQUAL(xRETURN_xUSBD_MODULE, xRETURN_xUSBH_MODULE);
+    TEST_ASSERT_NOT_EQUAL(xRETURN_xUSBD_MODULE, xRETURN_xSPI_MODULE);
+
+    TEST_ASSERT_NOT_EQUAL(xRETURN_xFS_MODULE, xRETURN_xTRACE_MODULE);
+    TEST_ASSERT_NOT_EQUAL(xRETURN_xFS_MODULE, xRETURN_xRTOS_MODULE);
+    TEST_ASSERT_NOT_EQUAL(xRETURN_xFS_MODULE, xRETURN_xFAULT_MODULE);
+    TEST_ASSERT_NOT_EQUAL(xRETURN_xFS_MODULE, xRETURN_xSHELL_MODULE);
+    TEST_ASSERT_NOT_EQUAL(xRETURN_xFS_MODULE, xRETURN_xUSBH_MODULE);
+    TEST_ASSERT_NOT_EQUAL(xRETURN_xFS_MODULE, xRETURN_xSPI_MODULE);
+
+    TEST_ASSERT_NOT_EQUAL(xRETURN_xTRACE_MODULE, xRETURN_xRTOS_MODULE);
+    TEST_ASSERT_NOT_EQUAL(xRETURN_xTRACE_MODULE, xRETURN_xFAULT_MODULE);
+    TEST_ASSERT_NOT_EQUAL(xRETURN_xTRACE_MODULE, xRETURN_xSHELL_MODULE);
+    TEST_ASSERT_NOT_EQUAL(xRETURN_xTRACE_MODULE, xRETURN_xUSBH_MODULE);
+    TEST_ASSERT_NOT_EQUAL(xRETURN_xTRACE_MODULE, xRETURN_xSPI_MODULE);
+
+    TEST_ASSERT_NOT_EQUAL(xRETURN_xRTOS_MODULE, xRETURN_xFAULT_MODULE);
+    TEST_ASSERT_NOT_EQUAL(xRETURN_xRTOS_MODULE, xRETURN_xSHELL_MODULE);
+    TEST_ASSERT_NOT_EQUAL(xRETURN_xRTOS_MODULE, xRETURN_xUSBH_MODULE);
+    TEST_ASSERT_NOT_EQUAL(xRETURN_xRTOS_MODULE, xRETURN_xSPI_MODULE);
+
+    TEST_ASSERT_NOT_EQUAL(xRETURN_xFAULT_MODULE, xRETURN_xSHELL_MODULE);
+    TEST_ASSERT_NOT_EQUAL(xRETURN_xFAULT_MODULE, xRETURN_xUSBH_MODULE);
+    TEST_ASSERT_NOT_EQUAL(xRETURN_xFAULT_MODULE, xRETURN_xSPI_MODULE);
+
+    TEST_ASSERT_NOT_EQUAL(xRETURN_xSHELL_MODULE, xRETURN_xUSBH_MODULE);
+    TEST_ASSERT_NOT_EQUAL(xRETURN_xSHELL_MODULE, xRETURN_xSPI_MODULE);
+    TEST_ASSERT_NOT_EQUAL(xRETURN_xUSBH_MODULE, xRETURN_xSPI_MODULE);
+}
+
+void test_generic_errors_use_reserved_sdk_module(void)
+{
+    TEST_ASSERT_EQUAL_UINT32(0U, xRETURN_GET_MODULE(xRETURN_xERROR));
+    TEST_ASSERT_EQUAL_UINT32(0U, xRETURN_GET_MODULE(xRETURN_xERR_NULL_PTR));
+    TEST_ASSERT_EQUAL_UINT32(0U, xRETURN_GET_MODULE(xRETURN_xERR_TIMEOUT));
+    TEST_ASSERT_TRUE(xRETURN_IS_ERROR(xRETURN_xERROR));
+    TEST_ASSERT_TRUE(xRETURN_IS_ERROR(xRETURN_xERR_NULL_PTR));
+    TEST_ASSERT_TRUE(xRETURN_IS_ERROR(xRETURN_xERR_TIMEOUT));
+}
+
+int main(void)
+{
+    UNITY_BEGIN();
+    RUN_TEST(test_make_packs_module_severity_and_code);
+    RUN_TEST(test_make_masks_severity_and_code_fields);
+    RUN_TEST(test_ok_value_is_zero_and_not_an_error);
+    RUN_TEST(test_severity_predicates_identify_non_ok_results);
+    RUN_TEST(test_registered_module_ids_are_unique);
+    RUN_TEST(test_generic_errors_use_reserved_sdk_module);
+    return UNITY_END();
+}
+
+// EOF /////////////////////////////////////////////////////////////////////////////

@@ -1,0 +1,32 @@
+name: Cyclomatic Complexity
+
+on:
+  workflow_dispatch:
+
+jobs:
+  complexity:
+    name: lizard CCN check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install lizard
+        run: pip install lizard==1.22.1
+
+      - name: Run complexity check
+        run: |
+          python3 tools/xsdk.py complexity --summary complexity_summary.txt
+          echo "## Cyclomatic Complexity (CCN threshold: 15)" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          grep -E "Total nloc|Warning cnt|Avg\.CCN|!!!!" complexity_summary.txt \
+            >> $GITHUB_STEP_SUMMARY || true
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload complexity report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: complexity-report
+          path: build/complexity/report.html

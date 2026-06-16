@@ -1,0 +1,12 @@
+include_guard(GLOBAL)
+
+option(xSDK_BUILD_TESTS "Build xSDK host tests" ON)
+option(xSDK_BUILD_APPLICATIONS "Build xSDK applications" ON)
+option(xSDK_BUILD_EXAMPLES "Build xSDK examples" ON)
+option(xSDK_BUILD_XUSB_DEVICE "Build xUSB device stack" ON)
+option(xSDK_BUILD_XUSB_HOST "Build xUSB host stack" OFF)
+option(xSDK_WARNINGS_AS_ERRORS "Treat SDK compiler warnings as errors" ON)
+option(xSDK_SANITIZERS "Enable AddressSanitizer and UndefinedBehaviorSanitizer (host builds only)" OFF)
+option(xSDK_COVERAGE "Enable gcov coverage instrumentation (GCC/Clang host only)" OFF)
+option(xSDK_ENABLE_ASSERT "Enable xASSERT checks (all modules, all targets)" OFF)
+option(xSDK_GENERATE_TRACE_DICTIONARIES "Generate xTrace JSON dictionaries from trace annotations" OFF)

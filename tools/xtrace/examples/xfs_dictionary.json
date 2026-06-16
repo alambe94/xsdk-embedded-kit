@@ -1,0 +1,142 @@
+{
+  "_comment": "xFS v2 event dictionary. Keys are decimal event IDs matching xFS_TRACE_CODE_* in xfs_trace.h.",
+  "events": {
+    "64": {
+      "arg_labels": [
+        "root_dir_cluster"
+      ],
+      "name": "FS_MOUNT",
+      "param_count": 1,
+      "track": "xFS/Core",
+      "type": "instant"
+    },
+    "65": {
+      "arg_labels": [
+        "unused"
+      ],
+      "name": "FS_UNMOUNT",
+      "param_count": 1,
+      "track": "xFS/Core",
+      "type": "instant"
+    },
+    "66": {
+      "arg_labels": [
+        "start_cluster"
+      ],
+      "name": "FILE_OPEN",
+      "param_count": 1,
+      "track": "xFS/File",
+      "type": "begin"
+    },
+    "67": {
+      "arg_labels": [
+        "entry_cluster"
+      ],
+      "name": "FILE_CREATE",
+      "param_count": 1,
+      "track": "xFS/File",
+      "type": "begin"
+    },
+    "68": {
+      "arg_labels": [
+        "start_cluster"
+      ],
+      "name": "FILE_CLOSE",
+      "param_count": 1,
+      "track": "xFS/File",
+      "type": "end"
+    },
+    "69": {
+      "arg_labels": [
+        "first_cluster"
+      ],
+      "name": "FILE_DELETE",
+      "param_count": 1,
+      "track": "xFS/File",
+      "type": "instant"
+    },
+    "70": {
+      "arg_labels": [
+        "position"
+      ],
+      "name": "FILE_SEEK",
+      "param_count": 1,
+      "track": "xFS/File",
+      "type": "instant"
+    },
+    "71": {
+      "arg_labels": [
+        "start_cluster"
+      ],
+      "name": "DIR_OPEN",
+      "param_count": 1,
+      "track": "xFS/Dir",
+      "type": "begin"
+    },
+    "72": {
+      "arg_labels": [
+        "current_cluster"
+      ],
+      "name": "DIR_CLOSE",
+      "param_count": 1,
+      "track": "xFS/Dir",
+      "type": "end"
+    },
+    "73": {
+      "arg_labels": [
+        "dir_cluster"
+      ],
+      "name": "DIR_CREATE",
+      "param_count": 1,
+      "track": "xFS/Dir",
+      "type": "instant"
+    },
+    "74": {
+      "arg_labels": [
+        "unused"
+      ],
+      "name": "DIR_DELETE",
+      "param_count": 1,
+      "track": "xFS/Dir",
+      "type": "instant"
+    },
+    "75": {
+      "arg_labels": [
+        "new_parent_cluster"
+      ],
+      "name": "FILE_RENAME",
+      "param_count": 1,
+      "track": "xFS/File",
+      "type": "instant"
+    },
+    "76": {
+      "arg_labels": [
+        "unused"
+      ],
+      "name": "FS_SYNC",
+      "param_count": 1,
+      "track": "xFS/Core",
+      "type": "instant"
+    },
+    "77": {
+      "arg_labels": [
+        "bytes_written"
+      ],
+      "name": "FILE_WRITE",
+      "param_count": 1,
+      "track": "xFS/IO",
+      "type": "counter"
+    },
+    "78": {
+      "arg_labels": [
+        "bytes_read"
+      ],
+      "name": "FILE_READ",
+      "param_count": 1,
+      "track": "xFS/IO",
+      "type": "counter"
+    }
+  },
+  "timestamp_hz": 1000000,
+  "version": 2
+}

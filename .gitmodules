@@ -1,0 +1,34 @@
+[submodule "src/third_party/unity"]
+	path = src/third_party/unity
+	url = https://github.com/ThrowTheSwitch/Unity
+[submodule "src/third_party/fff"]
+	path = src/third_party/fff
+	url = https://github.com/meekrosoft/fff
+[submodule "src/third_party/ti/mcupsdk-core"]
+	path = src/third_party/ti/mcupsdk_core
+	url = https://github.com/TexasInstruments/mcupsdk-core
+	branch = release/am64x_am243x_am273x/11.02.00
+	shallow = true
+[submodule "src/third_party/ti/tifs-mcu-common"]
+	path = src/third_party/ti/tifs_mcu_common
+	url = https://github.com/TexasInstruments/tifs-mcu-common
+	branch = REL.MCUSDK.K3.11.02.00.24
+	shallow = true
+[submodule "tools/winusbpy"]
+	path = tools/winusbpy
+	url = https://github.com/alambe94/WinUsbPy
+	shallow = true
+[submodule "tools/pyusb"]
+	path = tools/pyusb
+	url = https://github.com/pyusb/pyusb.git
+[submodule "tools/libusb"]
+	path = tools/libusb
+	url = https://github.com/libusb/libusb.git
+[submodule "tools/openocd_wch"]
+	path = tools/openocd_wch
+	url = https://github.com/alambe94/openocd_wch
+	shallow = true
+[submodule "src/third_party/wch/ch32h417"]
+	path = src/third_party/wch/ch32h417
+	url = https://github.com/openwch/ch32h417
+	shallow = true

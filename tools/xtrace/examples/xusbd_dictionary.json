@@ -1,0 +1,115 @@
+{
+  "_comment": "xUSBD v2 event dictionary. Keys are decimal event IDs matching xUSBD_TRACE_CODE_* in xusbd_trace.h.",
+  "events": {
+    "100": {
+      "arg_labels": [
+        "configuration_value"
+      ],
+      "name": "SET_CONFIGURATION",
+      "param_count": 1,
+      "track": "xUSBD/Control",
+      "type": "instant"
+    },
+    "101": {
+      "arg_labels": [
+        "packed_request"
+      ],
+      "name": "CONTROL_REQUEST",
+      "param_count": 1,
+      "track": "xUSBD/Control",
+      "type": "instant"
+    },
+    "102": {
+      "arg_labels": [
+        "endpoint_address"
+      ],
+      "name": "EP_STALL",
+      "param_count": 1,
+      "track": "xUSBD/Endpoint",
+      "type": "instant"
+    },
+    "103": {
+      "arg_labels": [
+        "endpoint_address"
+      ],
+      "name": "EP_CLEAR_STALL",
+      "param_count": 1,
+      "track": "xUSBD/Endpoint",
+      "type": "instant"
+    },
+    "104": {
+      "arg_labels": [
+        "transfer_length"
+      ],
+      "name": "EP_IN",
+      "param_count": 1,
+      "track": "xUSBD/Endpoint",
+      "type": "counter"
+    },
+    "105": {
+      "arg_labels": [
+        "transfer_length"
+      ],
+      "name": "EP_OUT",
+      "param_count": 1,
+      "track": "xUSBD/Endpoint",
+      "type": "counter"
+    },
+    "106": {
+      "arg_labels": [
+        "owner_id"
+      ],
+      "name": "CLASS_REQUEST",
+      "param_count": 1,
+      "track": "xUSBD/Class",
+      "type": "instant"
+    },
+    "107": {
+      "arg_labels": [
+        "status"
+      ],
+      "name": "DCD_ERROR",
+      "param_count": 1,
+      "track": "xUSBD/DCD",
+      "type": "error"
+    },
+    "96": {
+      "arg_labels": [
+        "active_speed"
+      ],
+      "name": "BUS_RESET",
+      "param_count": 1,
+      "track": "xUSBD/Bus",
+      "type": "instant"
+    },
+    "97": {
+      "arg_labels": [
+        "active_speed"
+      ],
+      "name": "BUS_CONNECT",
+      "param_count": 1,
+      "track": "xUSBD/Bus",
+      "type": "instant"
+    },
+    "98": {
+      "arg_labels": [
+        "unused"
+      ],
+      "name": "BUS_DISCONNECT",
+      "param_count": 1,
+      "track": "xUSBD/Bus",
+      "type": "instant"
+    },
+    "99": {
+      "arg_labels": [
+        "address"
+      ],
+      "name": "SET_ADDRESS",
+      "param_count": 1,
+      "track": "xUSBD/Control",
+      "type": "instant"
+    }
+  },
+  "timestamp_hz": 1000000,
+  "version": 2
+}

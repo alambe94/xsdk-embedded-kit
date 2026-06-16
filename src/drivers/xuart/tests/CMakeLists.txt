@@ -1,0 +1,9 @@
+xsdk_add_test(xuart_core_test
+    SOURCES
+        fake/test_xuart_core.c
+        ../port/fake/xuart_fake.c
+    LIBS
+        xsdk::xuart
+    INCLUDES
+        ${CMAKE_CURRENT_SOURCE_DIR}/../port/fake
+)

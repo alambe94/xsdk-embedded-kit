@@ -1,0 +1,75 @@
+name: Vendor Toolchain (TI)
+
+on:
+  workflow_dispatch:
+
+env:
+  TIARMCLANG_VERSION: 5.0.0.STS
+  TIARMCLANG_INSTALL_DIR: ${{ github.workspace }}/tiarmclang
+  # SHA-256 of the installer - stored as a GitHub Actions repository variable.
+  # First-time setup:
+  #   1. Let the workflow run once; the download step prints the actual hash.
+  #   2. Copy that hash from the job log.
+  #   3. Set it at: repo Settings -> Secrets and variables -> Actions -> Variables -> TIARMCLANG_SHA256
+  # Update whenever TIARMCLANG_VERSION changes.
+  TIARMCLANG_SHA256: ${{ vars.TIARMCLANG_SHA256 }}
+
+jobs:
+  tiarmclang-r5:
+    name: tiarmclang (Cortex-R5)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build
+
+      - name: Cache tiarmclang installation
+        id: cache-tiarmclang
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.TIARMCLANG_INSTALL_DIR }}
+          key: tiarmclang-${{ env.TIARMCLANG_VERSION }}
+
+      - name: Download and install tiarmclang
+        if: steps.cache-tiarmclang.outputs.cache-hit != 'true'
+        run: |
+          wget -q \
+            "https://dr-download.ti.com/software-development/ide-configuration-compiler-or-debugger/MD-ayxs93eZNN/${{ env.TIARMCLANG_VERSION }}/ti_cgt_armllvm_${{ env.TIARMCLANG_VERSION }}_linux-x64_installer.bin" \
+            -O tiarmclang_installer.bin
+
+          ACTUAL_SHA256=$(sha256sum tiarmclang_installer.bin | cut -d' ' -f1)
+          echo "Installer SHA256: $ACTUAL_SHA256"
+
+          if [ -z "${{ env.TIARMCLANG_SHA256 }}" ]; then
+            echo "::error::Repository variable TIARMCLANG_SHA256 is not set."
+            echo "::error::Copy the hash above and add it at:"
+            echo "::error::  Settings -> Secrets and variables -> Actions -> Variables -> TIARMCLANG_SHA256"
+            exit 1
+          fi
+
+          echo "${{ env.TIARMCLANG_SHA256 }}  tiarmclang_installer.bin" | sha256sum --check
+          chmod +x tiarmclang_installer.bin
+          ./tiarmclang_installer.bin --mode unattended --prefix ${{ env.TIARMCLANG_INSTALL_DIR }}
+
+      - name: Add tiarmclang to PATH
+        run: echo "${{ env.TIARMCLANG_INSTALL_DIR }}/bin" >> $GITHUB_PATH
+
+      - name: Verify tiarmclang
+        run: tiarmclang --version
+
+      - name: Configure tiarmclang Cortex-R5 build
+        run: python3 tools/xsdk.py configure r5-ticlang
+
+      - name: Build tiarmclang Cortex-R5 targets
+        run: python3 tools/xsdk.py build r5-ticlang --no-configure
+
+      - name: Archive tiarmclang libraries
+        uses: actions/upload-artifact@v4
+        with:
+          name: cortex-r5-tiarmclang-libs
+          path: build/r5-ticlang/**/*.a

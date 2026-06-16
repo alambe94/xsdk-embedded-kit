@@ -1,0 +1,43 @@
+---
+# xSDK clang-tidy configuration
+#
+# Start conservative: clang-analyzer and bugprone only.
+# Add cert-* and readability-* incrementally as the codebase is cleaned up.
+# Port directories (hardware-specific code) are excluded via HeaderFilterRegex
+# and the per-file suppression list in the workflow.
+
+Checks: >
+  clang-analyzer-*,
+  -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-macro-parentheses,
+  readability-identifier-naming,
+
+# Only report findings in SDK headers, not in system or vendor headers.
+# bugprone-assignment-in-if-condition is active via bugprone-* above.
+HeaderFilterRegex: 'src/components/.*'
+
+# Do not error on missing compile commands for a file; the port sources
+# are excluded from the host build and will not appear in the database.
+
+CheckOptions:
+  - key: bugprone-suspicious-string-compare.WarnOnLogicalNotComparison
+    value: true
+
+  # --- readability-identifier-naming ---
+  # Only rules that fit xSDK conventions cleanly are enabled here.
+  # What is NOT enforced (deferred to a future custom clang-tidy check):
+  #   FunctionCase     - public APIs use xPascal_Snake (leading-x prefix) which no standard case option can represent.
+  #   MacroCase        - xRETURN_OK carries a leading-x, not plain UPPER_CASE.
+  #   EnumConstantCase - same leading-x exception (e.g. xUSBD_DFU_STATE_APP_IDLE).
+  #   MemberCase       - USB spec structs use bRequestType / wValue / bmAttributes, not snake_case.
+  #   TypedefCase      - xRETURN_t, xUSBD_Class_t: no standard case option matches the leading-x mixed form.
+  - key: readability-identifier-naming.StaticFunctionCase
+    value: lower_case
+  - key: readability-identifier-naming.LocalVariableCase
+    value: lower_case
+  - key: readability-identifier-naming.ParameterCase
+    value: lower_case
+  - key: readability-identifier-naming.TypedefSuffix
+    value: _t

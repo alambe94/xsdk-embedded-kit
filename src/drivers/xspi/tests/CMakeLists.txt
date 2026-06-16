@@ -1,0 +1,9 @@
+xsdk_add_test(xspi_core_test
+    SOURCES
+        fake/test_xspi_core.c
+        ../port/fake/xspi_fake.c
+    LIBS
+        xsdk::xspi
+    INCLUDES
+        ${CMAKE_CURRENT_SOURCE_DIR}/../port/fake
+)

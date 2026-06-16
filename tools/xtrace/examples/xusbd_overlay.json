@@ -1,0 +1,4 @@
+{
+  "_comment": "xUSBD v2 event dictionary. Keys are decimal event IDs matching xUSBD_TRACE_CODE_* in xusbd_trace.h.",
+  "timestamp_hz": 1000000
+}
