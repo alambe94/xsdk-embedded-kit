@@ -8,6 +8,7 @@
 #include "xrtos_port_am243x.h"
 #include "xsdk_soc_mmr.h"
 #include "xuart.h"
+#include "xuart_drv.h"
 #include "xtimer.h"
 
 #define UART0_BASE 0x02800000U
@@ -40,10 +41,30 @@ static xRTOS_Task_Context_t task_a_ctx;
 static xRTOS_Task_Context_t task_b_ctx;
 static xRTOS_Task_Context_t idle_ctx;
 
+static xUART_Context_t s_uart_ctx;
+static xUART_AM243x_Context_t s_am243x_uart_ctx;
+
+static void uart_write(const char *s)
+{
+    if (s == NULL)
+    {
+        return;
+    }
+    size_t len = 0;
+    while (s[len] != '\0')
+    {
+        len++;
+    }
+    if (len > 0)
+    {
+        (void)xUART_Transmit(&s_uart_ctx, (const uint8_t *)s, (uint32_t)len, 1000U);
+    }
+}
+
 static void timer_isr(void *args)
 {
     (void)args;
-    xtimer_clear_irq(TIMER8_BASE);
+    xTIMER_Clear_IRQ(TIMER8_BASE);
     xRTOS_Port_AM243x_Tick_ISR(NULL);
 }
 
@@ -52,7 +73,7 @@ static void task_a_entry(void *arg)
     (void)arg;
     for (;;)
     {
-        xuart_puts(UART0_BASE, "task A heartbeat\n");
+        uart_write("task A heartbeat\n");
         xRTOS_Task_Delay(HEARTBEAT_TICKS);
     }
 }
@@ -62,7 +83,7 @@ static void task_b_entry(void *arg)
     (void)arg;
     for (;;)
     {
-        xuart_puts(UART0_BASE, "task B heartbeat\n");
+        uart_write("task B heartbeat\n");
         xRTOS_Task_Delay(HEARTBEAT_TICKS);
     }
 }
@@ -76,8 +97,31 @@ static void idle_entry(void *arg)
 
 int main(void)
 {
-    xuart_init(UART0_BASE, UART0_BAUD, UART0_CLK_HZ);
-    xuart_puts(UART0_BASE, "\nxSDK AM243x boot\n");
+    s_am243x_uart_ctx.base_addr = UART0_BASE;
+    s_am243x_uart_ctx.input_clock_hz = UART0_CLK_HZ;
+
+    xUART_Config_t uart_cfg = {.baud_rate = UART0_BAUD,
+                               .data_bits = xUART_DATA_BITS_8,
+                               .stop_bits = xUART_STOP_BITS_1,
+                               .parity = xUART_PARITY_NONE,
+                               .flow_control = xUART_FLOW_CONTROL_NONE,
+                               .callbacks.on_event = NULL};
+
+    if (xUART_Init(&s_uart_ctx, &uart_cfg) != xRETURN_OK)
+    {
+        for (;;)
+            ;
+    }
+
+    xUART_Start_Config_t uart_start_cfg = {.port = 0U, .drv_ops = &xUART_AM243x_Driver_Ops, .drv_ctx = &s_am243x_uart_ctx};
+
+    if (xUART_Start(&s_uart_ctx, &uart_start_cfg) != xRETURN_OK)
+    {
+        for (;;)
+            ;
+    }
+
+    uart_write("\nxSDK AM243x boot\n");
 
     xRTOS_Port_AM243x_Init();
 
@@ -87,10 +131,10 @@ int main(void)
     *(volatile uint32_t *)TIMER8_CLK_SRC_MUX_ADDR = TIMER8_CLK_SRC_HFOSC0;
     xsdk_soc_mmr_lock_main(TIMER8_CLK_MUX_PARTITION);
 
-    xtimer_init_periodic(TIMER8_BASE, TICK_PERIOD_US, TIMER8_CLK_HZ);
+    xTIMER_Init_Periodic(TIMER8_BASE, TICK_PERIOD_US, TIMER8_CLK_HZ);
     xRTOS_Port_AM243x_Register_IRQ(TIMER8_IRQ, timer_isr, NULL, 15U, false);
     xRTOS_Port_AM243x_Enable_IRQ(TIMER8_IRQ);
-    xtimer_start(TIMER8_BASE);
+    xTIMER_Start(TIMER8_BASE);
 
     xRTOS_Kernel_Init(&kernel_ctx, &xrtos_arm_r5_port_ops);
 
@@ -120,7 +164,7 @@ int main(void)
                                 .stack_words = STACK_WORDS};
     xRTOS_Task_Create(&idle_ctx, &cfg);
 
-    xuart_puts(UART0_BASE, "starting scheduler\n");
+    uart_write("starting scheduler\n");
 
     xRTOS_Kernel_Start(); /* does not return */
 

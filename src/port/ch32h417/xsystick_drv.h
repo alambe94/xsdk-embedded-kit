@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// @file xtimer.h
-// @brief Public xTIMER driver API.
+// @file xsystick_drv.h
+// @brief CH32H417 Core SysTick timer driver.
 //
 
-#ifndef XTIMER_H
-#define XTIMER_H
+#ifndef XSYSTICK_DRV_H
+#define XSYSTICK_DRV_H
 
 #ifdef __cplusplus
 extern "C"
@@ -28,11 +28,21 @@ extern "C"
 // COMPILER INCLUDES
 #include <stdint.h>
 
-    // SYSTEM INCLUDES
+// SYSTEM INCLUDES
+#ifndef asm
+#define asm __asm__
+#endif
+#include "ch32h417.h"
 
     // MODULE INCLUDES
 
     // MACROS //////////////////////////////////////////////////////////////////////
+#define xSYSTICK_CTLR_STE   (1UL << 0) /* SysTick Enable */
+#define xSYSTICK_CTLR_STIE  (1UL << 1) /* SysTick Interrupt Enable */
+#define xSYSTICK_CTLR_STCLK (1UL << 2) /* Clock Source (0 = HCLK/8, 1 = HCLK) */
+#define xSYSTICK_CTLR_STRE  (1UL << 3) /* SysTick Auto-Reload Enable */
+
+#define xSYSTICK_CTLR_RUN (xSYSTICK_CTLR_STE | xSYSTICK_CTLR_STIE | xSYSTICK_CTLR_STCLK | xSYSTICK_CTLR_STRE)
 
     // TYPES ///////////////////////////////////////////////////////////////////////
 
@@ -42,19 +52,15 @@ extern "C"
 
     // FUNCTION PROTOTYPES /////////////////////////////////////////////////////////
 
-    /* Configure DMTimer/TIM for periodic overflow interrupts.
-     * period_us: desired period in microseconds
-     * module_clk_hz: timer input clock in Hz (e.g. 25000000 for 25 MHz)
-     * Clocks and pinmux assumed enabled by SBL/system initialization. */
-    void xTIMER_Init_Periodic(uint32_t base_addr, uint32_t period_us, uint32_t module_clk_hz);
-
-    void xTIMER_Start(uint32_t base_addr);
-    void xTIMER_Stop(uint32_t base_addr);
-    void xTIMER_Clear_IRQ(uint32_t base_addr);
+    void     xSysTick_Init(SysTick_Type *systick, uint32_t compare_value);
+    void     xSysTick_Enable(SysTick_Type *systick);
+    void     xSysTick_Disable(SysTick_Type *systick);
+    uint32_t xSysTick_Get_Counter(SysTick_Type *systick);
+    void     xSysTick_Clear_Pending(SysTick_Type *systick);
 
 #ifdef __cplusplus
 } // extern "C"
 #endif
 
-#endif // XTIMER_H
+#endif // XSYSTICK_DRV_H
 // EOF /////////////////////////////////////////////////////////////////////////////

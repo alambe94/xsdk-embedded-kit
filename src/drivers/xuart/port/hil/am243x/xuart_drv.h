@@ -12,49 +12,59 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// @file xtimer.h
-// @brief Public xTIMER driver API.
+// @file xuart_drv.h
+// @brief TI AM243x UART hardware port header for the xUART driver core.
 //
 
-#ifndef XTIMER_H
-#define XTIMER_H
+#ifndef XUART_DRV_H
+#define XUART_DRV_H
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-// INCLUDES ////////////////////////////////////////////////////////////////////
-// COMPILER INCLUDES
-#include <stdint.h>
+    // INCLUDES ////////////////////////////////////////////////////////////////////
+    // COMPILER INCLUDES
+    #include <stdbool.h>
+    #include <stdint.h>
 
     // SYSTEM INCLUDES
 
     // MODULE INCLUDES
+    #include "xuart_driver.h"
 
     // MACROS //////////////////////////////////////////////////////////////////////
 
     // TYPES ///////////////////////////////////////////////////////////////////////
 
+    typedef struct
+    {
+        uint32_t                      base_addr;
+        uint32_t                      input_clock_hz;
+
+        xUART_Driver_Event_Callback_t event_callback;
+        void                         *event_callback_ctx;
+
+        bool                          is_initialized;
+        bool                          is_started;
+        bool                          is_tx_busy;
+        bool                          is_rx_busy;
+        xRETURN_t                     last_tx_error;
+        xRETURN_t                     last_rx_error;
+    } xUART_AM243x_Context_t;
+
     // VARIABLES ///////////////////////////////////////////////////////////////////
+
+    extern const xUART_Driver_Ops_t xUART_AM243x_Driver_Ops;
 
     // INLINE FUNCTIONS ////////////////////////////////////////////////////////////
 
     // FUNCTION PROTOTYPES /////////////////////////////////////////////////////////
 
-    /* Configure DMTimer/TIM for periodic overflow interrupts.
-     * period_us: desired period in microseconds
-     * module_clk_hz: timer input clock in Hz (e.g. 25000000 for 25 MHz)
-     * Clocks and pinmux assumed enabled by SBL/system initialization. */
-    void xTIMER_Init_Periodic(uint32_t base_addr, uint32_t period_us, uint32_t module_clk_hz);
-
-    void xTIMER_Start(uint32_t base_addr);
-    void xTIMER_Stop(uint32_t base_addr);
-    void xTIMER_Clear_IRQ(uint32_t base_addr);
-
 #ifdef __cplusplus
 } // extern "C"
 #endif
 
-#endif // XTIMER_H
+#endif // XUART_DRV_H
 // EOF /////////////////////////////////////////////////////////////////////////////

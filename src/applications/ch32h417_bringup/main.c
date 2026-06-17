@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdbool.h>
 
 #ifndef asm
 #define asm __asm__
@@ -12,34 +13,21 @@
 #include "xrtos_tick.h"
 #include "xuart.h"
 #include "xuart_drv.h"
-#define XSDK_CH32H417_RCC_HB2PCENR    (*(volatile uint32_t *)0x4002101CU)
-#define XSDK_CH32H417_GPIOA_CFGHR     (*(volatile uint32_t *)0x40010804U)
-#define XSDK_CH32H417_GPIOA_SPEED     (*(volatile uint32_t *)0x4001081CU)
-#define XSDK_CH32H417_AFIO_GPIOA_AFHR (*(volatile uint32_t *)0x40010008U)
-#define XSDK_CH32H417_USART1_STATR    (*(volatile uint16_t *)0x40013800U)
-#define XSDK_CH32H417_USART1_DATAR    (*(volatile uint16_t *)0x40013804U)
-#define XSDK_CH32H417_USART1_BRR      (*(volatile uint16_t *)0x40013808U)
-#define XSDK_CH32H417_USART1_CTLR1    (*(volatile uint16_t *)0x4001380CU)
-
-#define XSDK_CH32H417_RCC_AFIOEN   (1UL << 0)
-#define XSDK_CH32H417_RCC_IOPAEN   (1UL << 2)
-#define XSDK_CH32H417_RCC_USART1EN (1UL << 14)
-
-#define XSDK_CH32H417_GPIO_PIN9_CFG_SHIFT   4U
-#define XSDK_CH32H417_GPIO_PIN9_SPEED_SHIFT 18U
-#define XSDK_CH32H417_GPIO_PIN9_AF_SHIFT    4U
-#define XSDK_CH32H417_GPIO_FIELD_MASK       0xFU
-#define XSDK_CH32H417_GPIO_SPEED_MASK       0x3U
-#define XSDK_CH32H417_GPIO_OUTPUT_AF_PP     0x9U
-#define XSDK_CH32H417_GPIO_SPEED_VERY_HIGH  0x3U
-#define XSDK_CH32H417_GPIO_AF7              0x7U
-
-#define XSDK_CH32H417_USART_TXE (1U << 7)
-#define XSDK_CH32H417_USART_TE  (1U << 3)
-#define XSDK_CH32H417_USART_UE  (1U << 13)
+#include "xsdk_port_ch32h417.h"
+#include "xi2c.h"
+#include "xi2c_drv.h"
+#include "xspi.h"
+#include "xspi_drv.h"
+#include "xtimer.h"
 
 static xUART_Context_t s_uart_ctx;
 static xUART_CH32H417_Context_t s_ch32_uart_ctx;
+
+static xI2C_Context_t s_i2c_ctx;
+static xI2C_CH32H417_Context_t s_ch32_i2c_ctx;
+
+static xSPI_Context_t s_spi_ctx;
+static xSPI_CH32H417_Context_t s_ch32_spi_ctx;
 
 static void xSDK_SOC_UART_PutChar(char character)
 {
@@ -143,11 +131,11 @@ static void xSDK_CH32H417_Task_A_Entry(void *arg)
         state = !state;
         if (state)
         {
-            GPIOC->BCR = (1UL << 3); // Turn Blue LED ON (active low)
+            xGPIO_Pin_Write(GPIOC, 3U, false); // Turn Blue LED ON (active low)
         }
         else
         {
-            GPIOC->BSHR = (1UL << 3); // Turn Blue LED OFF
+            xGPIO_Pin_Write(GPIOC, 3U, true); // Turn Blue LED OFF
         }
 
         xSDK_SOC_UART_Write("Task A: CTLR=0x");
@@ -165,20 +153,64 @@ static void xSDK_CH32H417_Task_B_Entry(void *arg)
 {
     (void)arg;
     static bool state = false;
+    static uint32_t tim2_ticks = 0U;
 
     for (;;)
     {
         state = !state;
         if (state)
         {
-            GPIOC->BCR = (1UL << 2); // Turn Green LED ON (active low)
+            xGPIO_Pin_Write(GPIOC, 2U, false); // Turn Green LED ON (active low)
         }
         else
         {
-            GPIOC->BSHR = (1UL << 2); // Turn Green LED OFF
+            xGPIO_Pin_Write(GPIOC, 2U, true); // Turn Green LED OFF
         }
 
-        xSDK_SOC_UART_Write("task B heartbeat\r\n");
+        // ---- 1. Timer Test ----
+        if ((TIM2->INTFR & TIM_UIF) != 0U)
+        {
+            xTIMER_Clear_IRQ(TIM2_BASE);
+            tim2_ticks++;
+            xSDK_SOC_UART_Write("[TEST] TIM2 tick count = 0x");
+            xSDK_CH32H417_PrintHex32(tim2_ticks);
+            xSDK_SOC_UART_Write(" (TIM2->CNT = 0x");
+            xSDK_CH32H417_PrintHex32(TIM2->CNT);
+            xSDK_SOC_UART_Write(")\r\n");
+        }
+
+        // ---- 2. I2C Test ----
+        {
+            uint8_t dummy_rx_val = 0U;
+            xRETURN_t i2c_ret = xI2C_Controller_Read(&s_i2c_ctx, 0x50, &dummy_rx_val, 1U, 100U);
+            xSDK_SOC_UART_Write("[TEST] I2C Read to 0x50: ret = 0x");
+            xSDK_CH32H417_PrintHex32(i2c_ret);
+            xSDK_SOC_UART_Write(" (expected NACK: 0x000F0008)\r\n");
+        }
+
+        // ---- 3. SPI Test ----
+        {
+            uint8_t tx_buf[4] = {0x9F, 0x00, 0x00, 0x00};
+            uint8_t rx_buf[4] = {0};
+            xSPI_Device_t spi_dev = {.bus_ctx = &s_spi_ctx, .chip_select = 0U, .mode_flags = 0U};
+            xSPI_Transaction_t spi_tx = {
+                .clock_hz = 1000000U, .bits_per_word = 8U, .tx_buffer = tx_buf, .rx_buffer = rx_buf, .length = 4U, .timeout_ms = 100U};
+
+            xGPIO_Pin_Write(GPIOA, 4U, false); // Assert CS
+            xRETURN_t spi_ret = xSPI_Transfer(&spi_dev, &spi_tx);
+            xGPIO_Pin_Write(GPIOA, 4U, true); // Deassert CS
+
+            xSDK_SOC_UART_Write("[TEST] SPI Transfer 9F: ret = 0x");
+            xSDK_CH32H417_PrintHex32(spi_ret);
+            xSDK_SOC_UART_Write(" RX = ");
+            for (uint32_t i = 0U; i < 4U; i++)
+            {
+                xSDK_CH32H417_PrintHex32(rx_buf[i]);
+                xSDK_SOC_UART_Write(" ");
+            }
+            xSDK_SOC_UART_Write("\r\n");
+        }
+
         (void)xRTOS_Task_Delay(XSDK_CH32H417_TASK_B_DELAY_TICKS);
     }
 }
@@ -221,127 +253,13 @@ static void xSDK_CH32H417_Init_xRTOS(void)
                               xSDK_CH32H417_Task_B_Stack, "task_b");
 }
 
-static uint32_t xSDK_CH32H417_GetHCLK(void)
-{
-    uint32_t sws = (*(volatile uint32_t *)0x40021004U) & 0x0000000CU;
-    uint32_t sysclk = 25000000U;
-
-    if (sws == 0x00U)
-    {
-        sysclk = 25000000U;
-    }
-    else if (sws == 0x04U)
-    {
-        sysclk = 25000000U;
-    }
-    else if (sws == 0x08U)
-    {
-        uint32_t syspll_sel = (*(volatile uint32_t *)0x40021008U) & 0x70000000U;
-        if (syspll_sel == 0x00000000U)
-        {
-            uint32_t pllmull = (*(volatile uint32_t *)0x40021008U) & 0x0000001FU;
-            uint32_t pllsource = (*(volatile uint32_t *)0x40021008U) & 0x000000E0U;
-            uint32_t presc = (((*(volatile uint32_t *)0x40021008U) & 0x00003F00U) >> 8) + 1U;
-            uint32_t tmp1 = 25000000U;
-
-            if (pllsource == 0xA0U)
-            {
-                tmp1 = 500000000U / presc;
-            }
-            else if (pllsource == 0xE0U)
-            {
-                uint32_t serdes_mul_idx = ((*(volatile uint32_t *)0x40021034U) >> 16) & 0x0FU;
-                const uint32_t serdes_mul_table[16] = {25, 28, 30, 32, 35, 38, 40, 45, 50, 56, 60, 64, 70, 76, 80, 90};
-                uint32_t serdes_mul = serdes_mul_table[serdes_mul_idx];
-                tmp1 = (25000000U * serdes_mul) / (2U * presc);
-            }
-            else if (pllsource == 0x80U)
-            {
-                tmp1 = 480000000U / presc;
-            }
-            else if (pllsource == 0xC0U)
-            {
-                tmp1 = 125000000U / presc;
-            }
-            else if (pllsource == 0x20U)
-            {
-                tmp1 = 25000000U / presc;
-            }
-            else
-            {
-                tmp1 = 25000000U / presc;
-            }
-
-            const uint32_t pll_mul_table[32] = {4,  6,  7,  8,  17, 9,  19, 10, 21, 11, 23, 12, 25, 13, 14, 15,
-                                                16, 17, 18, 19, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 59};
-            uint32_t pll_mul = pll_mul_table[pllmull];
-
-            if ((pllmull == 4U) || (pllmull == 6U) || (pllmull == 8U) || (pllmull == 10U) || (pllmull == 12U))
-            {
-                sysclk = (tmp1 * pll_mul) >> 1U;
-            }
-            else
-            {
-                sysclk = tmp1 * pll_mul;
-            }
-        }
-        else if (syspll_sel == 0x40000000U)
-        {
-            sysclk = 480000000U;
-        }
-        else if (syspll_sel == 0x50000000U)
-        {
-            sysclk = 500000000U;
-        }
-        else if (syspll_sel == 0x60000000U)
-        {
-            uint32_t serdes_mul_idx = ((*(volatile uint32_t *)0x40021034U) >> 16) & 0x0FU;
-            const uint32_t serdes_mul_table[16] = {25, 28, 30, 32, 35, 38, 40, 45, 50, 56, 60, 64, 70, 76, 80, 90};
-            uint32_t serdes_mul = serdes_mul_table[serdes_mul_idx];
-            sysclk = (25000000U * serdes_mul) / 2U;
-        }
-        else if (syspll_sel == 0x70000000U)
-        {
-            sysclk = 125000000U;
-        }
-    }
-
-    uint32_t hpre = ((*(volatile uint32_t *)0x40021004U) & 0x000000F0U) >> 4U;
-    const uint32_t hb_presc_table[16] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
-    uint32_t sysclk_div = sysclk >> hb_presc_table[hpre];
-
-    uint32_t fpre = ((*(volatile uint32_t *)0x40021004U) & 0x00030000U) >> 16U;
-    const uint32_t fpre_table[4] = {0, 1, 2, 2};
-    uint32_t hclk = sysclk_div >> fpre_table[fpre];
-
-    return hclk;
-}
-
 int main(void)
 {
     uint32_t observed_tick;
-    uint32_t actual_hclk = xSDK_CH32H417_GetHCLK();
+    uint32_t actual_hclk = xRCC_Get_HCLK_Freq();
 
-    // Pinmux and RCC clock configuration for USART1 (PA9/PA10)
-    {
-        uint32_t register_value;
-        XSDK_CH32H417_RCC_HB2PCENR |= XSDK_CH32H417_RCC_AFIOEN | XSDK_CH32H417_RCC_IOPAEN | XSDK_CH32H417_RCC_USART1EN;
-
-        register_value = XSDK_CH32H417_AFIO_GPIOA_AFHR;
-        register_value &= ~(XSDK_CH32H417_GPIO_FIELD_MASK << XSDK_CH32H417_GPIO_PIN9_AF_SHIFT);
-        register_value |= XSDK_CH32H417_GPIO_AF7 << XSDK_CH32H417_GPIO_PIN9_AF_SHIFT;
-        XSDK_CH32H417_AFIO_GPIOA_AFHR = register_value;
-
-        register_value = XSDK_CH32H417_GPIOA_CFGHR;
-        register_value &= ~(XSDK_CH32H417_GPIO_FIELD_MASK << XSDK_CH32H417_GPIO_PIN9_CFG_SHIFT);
-        register_value |= XSDK_CH32H417_GPIO_OUTPUT_AF_PP << XSDK_CH32H417_GPIO_PIN9_CFG_SHIFT;
-        XSDK_CH32H417_GPIOA_CFGHR = register_value;
-
-        register_value = XSDK_CH32H417_GPIOA_SPEED;
-        register_value &= ~(XSDK_CH32H417_GPIO_SPEED_MASK << XSDK_CH32H417_GPIO_PIN9_SPEED_SHIFT);
-        register_value |= XSDK_CH32H417_GPIO_SPEED_VERY_HIGH << XSDK_CH32H417_GPIO_PIN9_SPEED_SHIFT;
-        XSDK_CH32H417_GPIOA_SPEED = register_value;
-    }
+    xSDK_Port_Init();
+    xSDK_Port_USART1_Pinmux_Init();
 
     // Set up and start proper xUART driver
     s_ch32_uart_ctx.usart = USART1;
@@ -368,13 +286,78 @@ int main(void)
 
     xSDK_SOC_UART_Write("xSDK CH32H417 boot\r\n");
 
-    // Initialize LEDs on PC2 and PC3 (CH32H417 uses a new GPIO layout where Output PP is 0x1 in CFGLR and speed is set in SPEED register)
-    *(volatile uint32_t *)0x4002101C |= (1UL << 4); // RCC_HB2Periph_GPIOC
-    GPIOC->CFGLR &= ~0x0000FF00;                    // Clear configuration for pin 2 & 3
-    GPIOC->CFGLR |= 0x00001100;                     // Set pin 2 & 3 to Output PP (0x1 per pin)
-    GPIOC->SPEED &= ~0x000000F0;                    // Clear speed for pin 2 & 3
-    GPIOC->SPEED |= 0x000000F0;                     // Set pin 2 & 3 to Very High Speed (0x3 per pin)
-    GPIOC->BSHR = (1UL << 2) | (1UL << 3);          // Turn both LEDs OFF initially (high)
+    // Initialize LEDs on PC2 and PC3
+    xRCC_Enable_Periph_Clock(xRCC_PERIPH_GPIOC);
+
+    xGPIO_Config_t led_cfg = {.mode = xGPIO_MODE_OUTPUT_PP, .speed = xGPIO_SPEED_VERY_HIGH};
+    xGPIO_Init(GPIOC, 2U, &led_cfg);
+    xGPIO_Init(GPIOC, 3U, &led_cfg);
+
+    xGPIO_Pin_Write(GPIOC, 2U, true); // Turn both LEDs OFF initially (high)
+    xGPIO_Pin_Write(GPIOC, 3U, true);
+
+    // -------------------------------------------------------------------------
+    // Test Peripherals Configuration (I2C1, SPI1, TIM2)
+    // -------------------------------------------------------------------------
+
+    // 1. Configure I2C1 pinmux (PB6=SCL, PB7=SDA)
+    {
+        xSDK_Port_I2C1_Pinmux_Init();
+
+        s_ch32_i2c_ctx.i2c = I2C1;
+        s_ch32_i2c_ctx.pclk_hz = actual_hclk;
+
+        xI2C_Config_t i2c_cfg = {
+            .bitrate_hz = 100000U, .address_mode = xI2C_ADDRESS_MODE_7_BIT, .has_own_address = false, .own_address = 0x00U};
+
+        xI2C_Instance_t i2c_inst = {.ops = &xI2C_CH32H417_Driver_Ops, .driver_ctx = &s_ch32_i2c_ctx};
+
+        if (xI2C_Init(&s_i2c_ctx, &i2c_inst, &i2c_cfg) != xRETURN_OK)
+        {
+            xSDK_SOC_UART_Write("I2C Init failed\r\n");
+        }
+        else if (xI2C_Start(&s_i2c_ctx) != xRETURN_OK)
+        {
+            xSDK_SOC_UART_Write("I2C Start failed\r\n");
+        }
+        else
+        {
+            xSDK_SOC_UART_Write("I2C1 initialized at 100kHz\r\n");
+        }
+    }
+
+    // 2. Configure SPI1 pinmux (PA5=SCK, PA6=MISO, PA7=MOSI, PA4=CS)
+    {
+        xSDK_Port_SPI1_Pinmux_Init();
+
+        s_ch32_spi_ctx.spi = SPI1;
+        s_ch32_spi_ctx.pclk_hz = actual_hclk;
+
+        xSPI_Config_t spi_cfg = {
+            .default_clock_hz = 1000000U, .default_mode_flags = 0U, .bits_per_word = 8U, .bit_order = xSPI_BIT_ORDER_MSB_FIRST};
+
+        xSPI_Instance_t spi_inst = {.ops = &xSPI_CH32H417_Driver_Ops, .driver_ctx = &s_ch32_spi_ctx};
+
+        if (xSPI_Init(&s_spi_ctx, &spi_inst, &spi_cfg) != xRETURN_OK)
+        {
+            xSDK_SOC_UART_Write("SPI Init failed\r\n");
+        }
+        else if (xSPI_Start(&s_spi_ctx) != xRETURN_OK)
+        {
+            xSDK_SOC_UART_Write("SPI Start failed\r\n");
+        }
+        else
+        {
+            xSDK_SOC_UART_Write("SPI1 initialized at 1MHz\r\n");
+        }
+    }
+
+    // 3. Configure TIM2 Timer for 1-second interval
+    {
+        xTIMER_Init_Periodic(TIM2_BASE, 1000000U, actual_hclk);
+        xTIMER_Start(TIM2_BASE);
+        xSDK_SOC_UART_Write("TIM2 started (1s period)\r\n");
+    }
 
     xSDK_CH32H417_Init_xRTOS();
     xSDK_SOC_UART_Write("xRTOS tasks registered\r\n");

@@ -11,6 +11,9 @@ target_link_libraries(ch32h417_bringup PRIVATE
     xsdk::xrtos
     xsdk::xusbd
     xsdk::xuart
+    xsdk::xi2c
+    xsdk::xspi
+    xsdk::xtimer
     xsdk::port::ch32h417
 )
 

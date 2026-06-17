@@ -43,6 +43,7 @@
 #include "xrtos_port_am243x.h"
 #include "xsdk_soc_mmr.h"
 #include "xuart.h"
+#include "xuart_drv.h"
 #include "xtimer.h"
 
 // -- Board constants --------------------------------------------------------
@@ -83,12 +84,34 @@ static uint32_t s_idle_stack[128];
 static volatile uint32_t s_worker_count[RR32_WORKER_COUNT];
 static volatile bool s_workers_stop;
 
+static xUART_Context_t s_uart_ctx;
+static xUART_AM243x_Context_t s_am243x_uart_ctx;
+
+// -- Helper functions -------------------------------------------------------
+
+static void uart_write(const char *s)
+{
+    if (s == NULL)
+    {
+        return;
+    }
+    size_t len = 0;
+    while (s[len] != '\0')
+    {
+        len++;
+    }
+    if (len > 0)
+    {
+        (void)xUART_Transmit(&s_uart_ctx, (const uint8_t *)s, (uint32_t)len, 1000U);
+    }
+}
+
 // -- ISR -------------------------------------------------------------------
 
 static void timer_isr(void *args)
 {
     (void)args;
-    xtimer_clear_irq(TIMER8_BASE);
+    xTIMER_Clear_IRQ(TIMER8_BASE);
     xRTOS_Port_AM243x_Tick_ISR(NULL);
 }
 
@@ -108,8 +131,8 @@ static void supervisor_entry(void *arg)
 {
     (void)arg;
 
-    xuart_puts(UART0_BASE, "\nxRTOS 32-Slot Round-Robin Test (AM243x)\n");
-    xuart_puts(UART0_BASE, "Workers 1-29 at priority 2. Sleeping 100 ticks...\n");
+    uart_write("\nxRTOS 32-Slot Round-Robin Test (AM243x)\n");
+    uart_write("Workers 1-29 at priority 2. Sleeping 100 ticks...\n");
 
     (void)xRTOS_Task_Delay(100U);
 
@@ -141,12 +164,12 @@ static void supervisor_entry(void *arg)
 
     if (pass)
     {
-        xuart_puts(UART0_BASE, "RR32 PASS: 29-task round-robin balanced\n");
+        uart_write("RR32 PASS: 29-task round-robin balanced\n");
         g_rr32_done = 1U;
     }
     else
     {
-        xuart_puts(UART0_BASE, "RR32 FAIL: worker counts not balanced\n");
+        uart_write("RR32 FAIL: worker counts not balanced\n");
         g_rr32_done = 2U;
     }
 
@@ -168,8 +191,31 @@ static void idle_entry(void *arg)
 
 int main(void)
 {
-    xuart_init(UART0_BASE, UART0_BAUD, UART0_CLK_HZ);
-    xuart_puts(UART0_BASE, "\nxSDK AM243x RR32 boot\n");
+    s_am243x_uart_ctx.base_addr = UART0_BASE;
+    s_am243x_uart_ctx.input_clock_hz = UART0_CLK_HZ;
+
+    xUART_Config_t uart_cfg = {.baud_rate = UART0_BAUD,
+                               .data_bits = xUART_DATA_BITS_8,
+                               .stop_bits = xUART_STOP_BITS_1,
+                               .parity = xUART_PARITY_NONE,
+                               .flow_control = xUART_FLOW_CONTROL_NONE,
+                               .callbacks.on_event = NULL};
+
+    if (xUART_Init(&s_uart_ctx, &uart_cfg) != xRETURN_OK)
+    {
+        for (;;)
+            ;
+    }
+
+    xUART_Start_Config_t uart_start_cfg = {.port = 0U, .drv_ops = &xUART_AM243x_Driver_Ops, .drv_ctx = &s_am243x_uart_ctx};
+
+    if (xUART_Start(&s_uart_ctx, &uart_start_cfg) != xRETURN_OK)
+    {
+        for (;;)
+            ;
+    }
+
+    uart_write("\nxSDK AM243x RR32 boot\n");
 
     xRTOS_Port_AM243x_Init();
 
@@ -177,10 +223,10 @@ int main(void)
     *(volatile uint32_t *)TIMER8_CLK_SRC_MUX_ADDR = TIMER8_CLK_SRC_HFOSC0;
     xsdk_soc_mmr_lock_main(TIMER8_CLK_MUX_PARTITION);
 
-    xtimer_init_periodic(TIMER8_BASE, TICK_PERIOD_US, TIMER8_CLK_HZ);
+    xTIMER_Init_Periodic(TIMER8_BASE, TICK_PERIOD_US, TIMER8_CLK_HZ);
     xRTOS_Port_AM243x_Register_IRQ(TIMER8_IRQ, timer_isr, NULL, 15U, false);
     xRTOS_Port_AM243x_Enable_IRQ(TIMER8_IRQ);
-    xtimer_start(TIMER8_BASE);
+    xTIMER_Start(TIMER8_BASE);
 
     xRTOS_Kernel_Init(&s_kernel, &xrtos_arm_r5_port_ops);
 
@@ -208,7 +254,7 @@ int main(void)
                                                                    .stack_words = 128U});
     }
 
-    xuart_puts(UART0_BASE, "Starting scheduler...\n");
+    uart_write("Starting scheduler...\n");
     xRTOS_Kernel_Start();
 
     return 0;

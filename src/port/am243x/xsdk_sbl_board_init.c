@@ -38,6 +38,7 @@
 #include "sbl/ti_drivers_open_close.h"
 #include "xsdk_soc_mmr.h"
 #include "xuart.h"
+#include "xuart_drv.h"
 
 // MACROS //////////////////////////////////////////////////////////////////////////
 #define SBL_UART0_BASE           (0x02800000U)
@@ -47,6 +48,9 @@
 #define CONFIG_MPU_NUM_REGIONS   (5U)
 #define BOOT_SECTION             __attribute__((section(".text.boot")))
 #define RODATA_CFG               __attribute__((section(".rodata.cfg")))
+
+static xUART_Context_t s_sbl_uart_ctx;
+static xUART_AM243x_Context_t s_sbl_am243x_uart_ctx;
 
 // TYPES ///////////////////////////////////////////////////////////////////////////
 
@@ -210,12 +214,12 @@ static void xsdk_sbl_dpl_init(void)
 // DebugP UART output - used by DebugP_log internals and putchar_
 void putchar_(char c)
 {
-    xuart_putc(SBL_UART0_BASE, c);
+    (void)xUART_Transmit(&s_sbl_uart_ctx, (const uint8_t *)&c, 1U, 1000U);
 }
 
 void DebugP_uartLogWriterPutChar(char c)
 {
-    xuart_putc(SBL_UART0_BASE, c);
+    (void)xUART_Transmit(&s_sbl_uart_ctx, (const uint8_t *)&c, 1U, 1000U);
 }
 
 // Stub - xSDK does not use TI UART driver index mechanism
@@ -247,12 +251,41 @@ void System_deinit(void)
 // Sciclient is already initialised in the constructor above.
 int32_t Drivers_open(void)
 {
-    xuart_init(SBL_UART0_BASE, 0U, 0U); // baud/clk set by ROM before SBL starts
+    s_sbl_am243x_uart_ctx.base_addr = SBL_UART0_BASE;
+    s_sbl_am243x_uart_ctx.input_clock_hz = 0U;
+
+    xUART_Config_t config = {
+        .baud_rate = 0U,
+        .data_bits = xUART_DATA_BITS_8,
+        .stop_bits = xUART_STOP_BITS_1,
+        .parity = xUART_PARITY_NONE,
+        .flow_control = xUART_FLOW_CONTROL_NONE,
+        .callbacks.on_event = NULL
+    };
+
+    if (xUART_Init(&s_sbl_uart_ctx, &config) != xRETURN_OK)
+    {
+        return SystemP_FAILURE;
+    }
+
+    xUART_Start_Config_t start_cfg = {
+        .port = 0U,
+        .drv_ops = &xUART_AM243x_Driver_Ops,
+        .drv_ctx = &s_sbl_am243x_uart_ctx
+    };
+
+    if (xUART_Start(&s_sbl_uart_ctx, &start_cfg) != xRETURN_OK)
+    {
+        return SystemP_FAILURE;
+    }
+
     return SystemP_SUCCESS;
 }
 
 void Drivers_close(void)
 {
+    (void)xUART_Stop(&s_sbl_uart_ctx);
+    (void)xUART_Deinit(&s_sbl_uart_ctx);
     (void)Sciclient_deinit();
 }
 

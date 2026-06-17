@@ -20,11 +20,11 @@ target_link_libraries(xsdk_port_am243x PRIVATE xsdk::xrtos)
 
 # Expose startup and linker script paths for application targets.
 set(XSDK_AM243X_STARTUP
-    "${CMAKE_CURRENT_SOURCE_DIR}/startup_am243x.S"
+    "${CMAKE_CURRENT_SOURCE_DIR}/startup/startup_am243x.S"
     CACHE PATH "AM243x startup file" FORCE
 )
 set(XSDK_AM243X_LINKER_CMD
-    "${CMAKE_CURRENT_SOURCE_DIR}/linker.cmd"
+    "${CMAKE_CURRENT_SOURCE_DIR}/linkers/linker.cmd"
     CACHE PATH "AM243x linker command file" FORCE
 )
 

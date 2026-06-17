@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// @file xtimer.h
-// @brief Public xTIMER driver API.
+// @file xgpio_drv.h
+// @brief CH32H417 General Purpose Input/Output (GPIO) driver.
 //
 
-#ifndef XTIMER_H
-#define XTIMER_H
+#ifndef XGPIO_DRV_H
+#define XGPIO_DRV_H
 
 #ifdef __cplusplus
 extern "C"
@@ -26,9 +26,14 @@ extern "C"
 
 // INCLUDES ////////////////////////////////////////////////////////////////////
 // COMPILER INCLUDES
+#include <stdbool.h>
 #include <stdint.h>
 
-    // SYSTEM INCLUDES
+// SYSTEM INCLUDES
+#ifndef asm
+#define asm __asm__
+#endif
+#include "ch32h417.h"
 
     // MODULE INCLUDES
 
@@ -36,25 +41,44 @@ extern "C"
 
     // TYPES ///////////////////////////////////////////////////////////////////////
 
+    typedef enum
+    {
+        xGPIO_MODE_INPUT = 0x0U,
+        xGPIO_MODE_OUTPUT_PP = 0x1U,
+        xGPIO_MODE_OUTPUT_OD = 0x2U,
+        xGPIO_MODE_AF_PP = 0x9U,
+        xGPIO_MODE_AF_OD = 0xAU,
+    } xGPIO_Mode_t;
+
+    typedef enum
+    {
+        xGPIO_SPEED_LOW = 0x0U,
+        xGPIO_SPEED_MEDIUM = 0x1U,
+        xGPIO_SPEED_HIGH = 0x2U,
+        xGPIO_SPEED_VERY_HIGH = 0x3U,
+    } xGPIO_Speed_t;
+
+    typedef struct
+    {
+        xGPIO_Mode_t mode;
+        xGPIO_Speed_t speed;
+    } xGPIO_Config_t;
+
     // VARIABLES ///////////////////////////////////////////////////////////////////
 
     // INLINE FUNCTIONS ////////////////////////////////////////////////////////////
 
     // FUNCTION PROTOTYPES /////////////////////////////////////////////////////////
 
-    /* Configure DMTimer/TIM for periodic overflow interrupts.
-     * period_us: desired period in microseconds
-     * module_clk_hz: timer input clock in Hz (e.g. 25000000 for 25 MHz)
-     * Clocks and pinmux assumed enabled by SBL/system initialization. */
-    void xTIMER_Init_Periodic(uint32_t base_addr, uint32_t period_us, uint32_t module_clk_hz);
-
-    void xTIMER_Start(uint32_t base_addr);
-    void xTIMER_Stop(uint32_t base_addr);
-    void xTIMER_Clear_IRQ(uint32_t base_addr);
+    void xGPIO_Init(GPIO_TypeDef *gpiox, uint32_t pin, const xGPIO_Config_t *cfg);
+    void xGPIO_Configure_Pin(GPIO_TypeDef *gpiox, uint32_t pin, uint32_t af_num);
+    void xGPIO_Pin_Write(GPIO_TypeDef *gpiox, uint32_t pin, bool level);
+    void xGPIO_Pin_Toggle(GPIO_TypeDef *gpiox, uint32_t pin);
+    bool xGPIO_Pin_Read(GPIO_TypeDef *gpiox, uint32_t pin);
 
 #ifdef __cplusplus
 } // extern "C"
 #endif
 
-#endif // XTIMER_H
+#endif // XGPIO_DRV_H
 // EOF /////////////////////////////////////////////////////////////////////////////

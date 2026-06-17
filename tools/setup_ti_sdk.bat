@@ -40,11 +40,11 @@ if errorlevel 1 ( echo ERROR: submodule init failed. & exit /b 1 )
 echo Applying sparse checkout...
 git -C "%SUBMOD_DIR%" sparse-checkout init --no-cone
 git -C "%SUBMOD_DIR%" sparse-checkout set ^
-    "/source/drivers/sciclient.h" ^
-    "/source/drivers/sciclient/" ^
-    "/source/drivers/hw_include/" ^
+    "/source/drivers/" ^
     "/source/usb/" ^
-    "/examples/drivers/boot/sbl_null/"
+    "/examples/drivers/boot/sbl_null/" ^
+    "/source/kernel/nortos/" ^
+    "/source/kernel/dpl/"
 if errorlevel 1 ( echo ERROR: sparse-checkout failed. & exit /b 1 )
 git -C "%SUBMOD_DIR%" sparse-checkout reapply
 

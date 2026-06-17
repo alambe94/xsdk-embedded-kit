@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// @file xtimer.h
-// @brief Public xTIMER driver API.
+// @file xrcc_drv.h
+// @brief CH32H417 Reset and Clock Control (RCC) driver.
 //
 
-#ifndef XTIMER_H
-#define XTIMER_H
+#ifndef XRCC_DRV_H
+#define XRCC_DRV_H
 
 #ifdef __cplusplus
 extern "C"
@@ -36,25 +36,41 @@ extern "C"
 
     // TYPES ///////////////////////////////////////////////////////////////////////
 
+    typedef enum
+    {
+        xRCC_PERIPH_AFIO,
+        xRCC_PERIPH_GPIOA,
+        xRCC_PERIPH_GPIOB,
+        xRCC_PERIPH_GPIOC,
+        xRCC_PERIPH_GPIOD,
+        xRCC_PERIPH_GPIOE,
+        xRCC_PERIPH_GPIOF,
+        xRCC_PERIPH_USART1,
+        xRCC_PERIPH_USART2,
+        xRCC_PERIPH_USART3,
+        xRCC_PERIPH_I2C1,
+        xRCC_PERIPH_I2C2,
+        xRCC_PERIPH_SPI1,
+        xRCC_PERIPH_SPI2,
+        xRCC_PERIPH_TIM1,
+        xRCC_PERIPH_TIM2,
+        xRCC_PERIPH_TIM3,
+        xRCC_PERIPH_TIM4,
+    } xRCC_Periph_t;
+
     // VARIABLES ///////////////////////////////////////////////////////////////////
 
     // INLINE FUNCTIONS ////////////////////////////////////////////////////////////
 
     // FUNCTION PROTOTYPES /////////////////////////////////////////////////////////
 
-    /* Configure DMTimer/TIM for periodic overflow interrupts.
-     * period_us: desired period in microseconds
-     * module_clk_hz: timer input clock in Hz (e.g. 25000000 for 25 MHz)
-     * Clocks and pinmux assumed enabled by SBL/system initialization. */
-    void xTIMER_Init_Periodic(uint32_t base_addr, uint32_t period_us, uint32_t module_clk_hz);
-
-    void xTIMER_Start(uint32_t base_addr);
-    void xTIMER_Stop(uint32_t base_addr);
-    void xTIMER_Clear_IRQ(uint32_t base_addr);
+    void xRCC_Enable_Periph_Clock(xRCC_Periph_t periph);
+    void xRCC_Disable_Periph_Clock(xRCC_Periph_t periph);
+    uint32_t xRCC_Get_HCLK_Freq(void);
 
 #ifdef __cplusplus
 } // extern "C"
 #endif
 
-#endif // XTIMER_H
+#endif // XRCC_DRV_H
 // EOF /////////////////////////////////////////////////////////////////////////////

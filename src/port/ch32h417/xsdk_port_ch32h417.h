@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// @file xtimer.h
-// @brief Public xTIMER driver API.
+// @file xsdk_port_ch32h417.h
+// @brief CH32H417 SoC port integration and initialization.
 //
 
-#ifndef XTIMER_H
-#define XTIMER_H
+#ifndef XSDK_PORT_CH32H417_H
+#define XSDK_PORT_CH32H417_H
 
 #ifdef __cplusplus
 extern "C"
@@ -26,11 +26,18 @@ extern "C"
 
 // INCLUDES ////////////////////////////////////////////////////////////////////
 // COMPILER INCLUDES
-#include <stdint.h>
 
-    // SYSTEM INCLUDES
+// SYSTEM INCLUDES
+#ifndef asm
+#define asm __asm__
+#endif
+#include "ch32h417.h"
 
-    // MODULE INCLUDES
+// MODULE INCLUDES
+#include "xgpio_drv.h"
+#include "xrcc_drv.h"
+#include "xpfic_drv.h"
+#include "xsystick_drv.h"
 
     // MACROS //////////////////////////////////////////////////////////////////////
 
@@ -42,19 +49,14 @@ extern "C"
 
     // FUNCTION PROTOTYPES /////////////////////////////////////////////////////////
 
-    /* Configure DMTimer/TIM for periodic overflow interrupts.
-     * period_us: desired period in microseconds
-     * module_clk_hz: timer input clock in Hz (e.g. 25000000 for 25 MHz)
-     * Clocks and pinmux assumed enabled by SBL/system initialization. */
-    void xTIMER_Init_Periodic(uint32_t base_addr, uint32_t period_us, uint32_t module_clk_hz);
-
-    void xTIMER_Start(uint32_t base_addr);
-    void xTIMER_Stop(uint32_t base_addr);
-    void xTIMER_Clear_IRQ(uint32_t base_addr);
+    void xSDK_Port_Init(void);
+    void xSDK_Port_USART1_Pinmux_Init(void);
+    void xSDK_Port_I2C1_Pinmux_Init(void);
+    void xSDK_Port_SPI1_Pinmux_Init(void);
 
 #ifdef __cplusplus
 } // extern "C"
 #endif
 
-#endif // XTIMER_H
+#endif // XSDK_PORT_CH32H417_H
 // EOF /////////////////////////////////////////////////////////////////////////////

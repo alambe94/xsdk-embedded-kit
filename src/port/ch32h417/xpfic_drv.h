@@ -1,4 +1,4 @@
-// Copyright 2022 alambe94
+// Copyright 2026 alambe94
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,53 +12,52 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// @file xspi_port_am243x.h
-// @brief TI AM243x hardware port header for the xSPI driver core.
+// @file xpfic_drv.h
+// @brief CH32H417 Programmable Fast Interrupt Controller (PFIC) wrapper driver.
 //
 
-#ifndef XSPI_PORT_AM243X_H
-#define XSPI_PORT_AM243X_H
+#ifndef XPFIC_DRV_H
+#define XPFIC_DRV_H
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
-    // INCLUDES ////////////////////////////////////////////////////////////////////
-    // COMPILER INCLUDES
-    #include <stdbool.h>
-    #include <stdint.h>
+// INCLUDES ////////////////////////////////////////////////////////////////////
+// COMPILER INCLUDES
+#include <stdbool.h>
+#include <stdint.h>
 
-    // SYSTEM INCLUDES
+// SYSTEM INCLUDES
+#ifndef asm
+#define asm __asm__
+#endif
+#include "ch32h417.h"
 
     // MODULE INCLUDES
-    #include "xspi_driver.h"
 
     // MACROS //////////////////////////////////////////////////////////////////////
 
     // TYPES ///////////////////////////////////////////////////////////////////////
 
-    typedef struct
-    {
-        uint32_t base_addr;
-        uint32_t input_clock_hz;
-        xRETURN_t last_error;
-        bool is_initialized;
-        bool is_started;
-        bool is_busy;
-    } xSPI_AM243x_Context_t;
-
     // VARIABLES ///////////////////////////////////////////////////////////////////
-
-    extern const xSPI_Driver_Ops_t xSPI_AM243x_Driver_Ops;
 
     // INLINE FUNCTIONS ////////////////////////////////////////////////////////////
 
     // FUNCTION PROTOTYPES /////////////////////////////////////////////////////////
 
+    void xPFIC_Enable_IRQ(IRQn_Type irq);
+    void xPFIC_Disable_IRQ(IRQn_Type irq);
+    void xPFIC_Set_Priority(IRQn_Type irq, uint8_t priority);
+    void xPFIC_Clear_Pending(IRQn_Type irq);
+    void xPFIC_Set_Pending(IRQn_Type irq);
+    bool xPFIC_Get_Pending(IRQn_Type irq);
+    bool xPFIC_Get_Active(IRQn_Type irq);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif
 
-#endif // XSPI_PORT_AM243X_H
+#endif // XPFIC_DRV_H
 // EOF /////////////////////////////////////////////////////////////////////////////

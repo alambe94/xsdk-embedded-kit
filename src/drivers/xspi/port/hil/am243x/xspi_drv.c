@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// @file xspi_port_am243x.c
+// @file xspi_drv.c
 // @brief TI AM243x hardware port implementation for the xSPI driver core.
 //
 
@@ -24,7 +24,7 @@
 
 // MODULE INCLUDES
 #include "xassert.h"
-#include "xspi_port_am243x.h"
+#include "xspi_drv.h"
 #include "xspi_log.h"
 
 // CSL INCLUDES

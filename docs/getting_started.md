@@ -183,7 +183,7 @@ To debug from outside VS Code:
 **Terminal 1 (OpenOCD):**
 ```cmd
 tools\openocd_wch\bin\openocd.exe ^
-  -f src\port\ch32h417\debug\ch32h417_v5f_wch.cfg
+  -f src\port\ch32h417\gdb\ch32h417_v5f_wch.cfg
 ```
 
 **Terminal 2 (GDB):**
