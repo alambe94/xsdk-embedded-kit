@@ -51,8 +51,6 @@ static xRETURN_t am243x_init(void *driver_ctx, const xI2C_Config_t *config);
 static xRETURN_t am243x_deinit(void *driver_ctx);
 static xRETURN_t am243x_start(void *driver_ctx);
 static xRETURN_t am243x_stop(void *driver_ctx);
-static xRETURN_t am243x_get_capabilities(const void *driver_ctx, xI2C_Capabilities_t *capabilities);
-static xRETURN_t am243x_get_status(void *driver_ctx, xI2C_Status_t *status);
 static xRETURN_t am243x_set_event_callback(void *driver_ctx, xI2C_Driver_Event_Callback_t callback, void *callback_ctx);
 static xRETURN_t am243x_transfer(void *driver_ctx, const xI2C_Transaction_t *transaction);
 
@@ -61,8 +59,6 @@ const xI2C_Driver_Ops_t xI2C_AM243x_Driver_Ops = {
     .deinit                 = am243x_deinit,
     .start                  = am243x_start,
     .stop                   = am243x_stop,
-    .get_capabilities       = am243x_get_capabilities,
-    .get_status             = am243x_get_status,
     .set_event_callback     = am243x_set_event_callback,
     .transfer               = am243x_transfer,
     .transfer_async         = NULL,
@@ -202,7 +198,6 @@ static xRETURN_t am243x_init(void *driver_ctx, const xI2C_Config_t *config)
     ctx->is_initialized = true;
     ctx->is_started     = false;
     ctx->is_busy        = false;
-    ctx->last_error     = xRETURN_OK;
 
     return xRETURN_OK;
 }
@@ -268,39 +263,6 @@ static xRETURN_t am243x_stop(void *driver_ctx)
     return xRETURN_OK;
 }
 
-static xRETURN_t am243x_get_capabilities(const void *driver_ctx, xI2C_Capabilities_t *capabilities)
-{
-    (void)driver_ctx;
-    if (capabilities == NULL)
-    {
-        return xRETURN_xERR_xI2C_NULL_POINTER;
-    }
-
-    (void)memset(capabilities, 0, sizeof(*capabilities));
-    capabilities->max_clock_hz = 400000U;
-
-    return xRETURN_OK;
-}
-
-static xRETURN_t am243x_get_status(void *driver_ctx, xI2C_Status_t *status)
-{
-    xI2C_AM243x_Context_t *ctx = (xI2C_AM243x_Context_t *)driver_ctx;
-    if ((ctx == NULL) || (status == NULL))
-    {
-        return xRETURN_xERR_xI2C_NULL_POINTER;
-    }
-
-    CSL_I2cRegs *regs            = (CSL_I2cRegs *)ctx->base_addr;
-    status->is_initialized       = ctx->is_initialized;
-    status->is_started           = ctx->is_started;
-    status->is_busy              = ctx->is_busy;
-    status->is_bus_acquired      = false;
-    status->has_bus_error        = (regs->IRQSTATUS & CSL_I2C_IRQSTATUS_AERR_MASK) != 0U;
-    status->has_arbitration_lost = (regs->IRQSTATUS & CSL_I2C_IRQSTATUS_AL_MASK) != 0U;
-    status->last_error           = ctx->last_error;
-
-    return xRETURN_OK;
-}
 
 static xRETURN_t am243x_set_event_callback(void *driver_ctx, xI2C_Driver_Event_Callback_t callback, void *callback_ctx)
 {
@@ -345,7 +307,6 @@ static xRETURN_t am243x_transfer(void *driver_ctx, const xI2C_Transaction_t *tra
     }
 
     ctx->is_busy    = true;
-    ctx->last_error = xRETURN_OK;
 
     // Wait for Bus Busy to be cleared
     uint32_t guard = 0U;
@@ -354,7 +315,6 @@ static xRETURN_t am243x_transfer(void *driver_ctx, const xI2C_Transaction_t *tra
         if (++guard >= timeout_loops)
         {
             ctx->is_busy    = false;
-            ctx->last_error = xRETURN_xERR_xI2C_TIMEOUT;
             return xRETURN_xERR_xI2C_TIMEOUT;
         }
     }
@@ -540,7 +500,6 @@ static xRETURN_t am243x_transfer(void *driver_ctx, const xI2C_Transaction_t *tra
     regs->IRQSTATUS = 0x7FFFU;
 
     ctx->is_busy    = false;
-    ctx->last_error = transfer_status;
 
     return transfer_status;
 }

@@ -188,12 +188,75 @@ void test_blocking_transfer_records_device_and_copies_data(void)
     TEST_ASSERT_EQUAL_UINT32(4U, fake_ctx.last_length);
 }
 
+static uint32_t g_callback_events = 0U;
+static xSPI_Event_t g_last_event;
+static xSPI_Event_Info_t g_last_event_info;
+static void *g_last_user_ctx = NULL;
+
+static void spi_test_event_cb(xSPI_Context_t *spi_ctx, xSPI_Event_t event, const xSPI_Event_Info_t *event_info, void *user_ctx)
+{
+    (void)spi_ctx;
+    g_callback_events++;
+    g_last_event = event;
+    if (event_info != NULL)
+    {
+        g_last_event_info = *event_info;
+    }
+    g_last_user_ctx = user_ctx;
+}
+
+void test_callback_registration_and_propagation(void)
+{
+    xSPI_Fake_Context_t fake_ctx;
+    xSPI_Context_t context;
+    xSPI_Device_t device;
+    xSPI_Callbacks_t callbacks;
+    xSPI_Event_Info_t info;
+    xRETURN_t status;
+    void *dummy_user_ctx = (void *)0xDEADBEEFU;
+
+    setup_started_bus(&fake_ctx, &context, &device);
+
+    // Initial state
+    TEST_ASSERT_EQUAL_UINT32(1U, fake_ctx.set_event_callback_count);
+    TEST_ASSERT_NOT_NULL(fake_ctx.registered_callback);
+    TEST_ASSERT_EQUAL_PTR(&context, fake_ctx.registered_callback_ctx);
+
+    // Register callbacks
+    callbacks.on_event = spi_test_event_cb;
+    g_callback_events = 0U;
+    g_last_user_ctx = NULL;
+
+    status = xSPI_Set_Callback(&context, &callbacks, dummy_user_ctx);
+    TEST_ASSERT_EQUAL_UINT32(xRETURN_OK, status);
+    TEST_ASSERT_EQUAL_PTR(spi_test_event_cb, context.callbacks.on_event);
+    TEST_ASSERT_EQUAL_PTR(dummy_user_ctx, context.user_ctx);
+
+    // Call fake callback propagation
+    info.error_code = xRETURN_OK;
+    info.bytes_transferred = 100U;
+    fake_ctx.registered_callback(fake_ctx.registered_callback_ctx, xSPI_EVENT_TRANSFER_COMPLETE, &info);
+
+    TEST_ASSERT_EQUAL_UINT32(1U, g_callback_events);
+    TEST_ASSERT_EQUAL(xSPI_EVENT_TRANSFER_COMPLETE, (int)g_last_event);
+    TEST_ASSERT_EQUAL_UINT32(xRETURN_OK, g_last_event_info.error_code);
+    TEST_ASSERT_EQUAL_UINT32(100U, g_last_event_info.bytes_transferred);
+    TEST_ASSERT_EQUAL_PTR(dummy_user_ctx, g_last_user_ctx);
+
+    // Deregister callbacks
+    status = xSPI_Set_Callback(&context, NULL, NULL);
+    TEST_ASSERT_EQUAL_UINT32(xRETURN_OK, status);
+    TEST_ASSERT_NULL(context.callbacks.on_event);
+    TEST_ASSERT_NULL(context.user_ctx);
+}
+
 int main(void)
 {
     UNITY_BEGIN();
     RUN_TEST(test_lifecycle_updates_core_and_port_state);
     RUN_TEST(test_transfer_requires_started_bus);
     RUN_TEST(test_blocking_transfer_records_device_and_copies_data);
+    RUN_TEST(test_callback_registration_and_propagation);
     return UNITY_END();
 }
 

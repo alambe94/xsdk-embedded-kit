@@ -50,7 +50,6 @@ extern "C"
         bool                     is_initialized;
         bool                     is_started;
         bool                     is_busy;
-        xRETURN_t                last_error;
     } xI2C_CH32H417_Context_t;
 
     // VARIABLES ///////////////////////////////////////////////////////////////////////

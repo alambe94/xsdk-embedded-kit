@@ -4,6 +4,11 @@ endif()
 
 add_executable(ch32h417_bringup
     main.c
+    uart_console.c
+    blinky.c
+    usb_dev.c
+    test_peripherals.c
+    rtos_tasks.c
     ${XSDK_CH32H417_STARTUP}
 )
 
@@ -14,6 +19,7 @@ target_link_libraries(ch32h417_bringup PRIVATE
     xsdk::xi2c
     xsdk::xspi
     xsdk::xtimer
+    xsdk::xgpio
     xsdk::port::ch32h417
 )
 

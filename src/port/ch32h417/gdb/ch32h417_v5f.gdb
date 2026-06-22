@@ -2,10 +2,10 @@
 #
 # Usage:
 #   # Terminal 1:
-#   tools\openocd_wch\bin\openocd.exe -f src/port/ch32h417/debug/ch32h417_v5f_wch.cfg
+#   tools\openocd_wch\bin\openocd.exe -f src/port/ch32h417/gdb/ch32h417_v5f_wch.cfg
 #   # Terminal 2:
 #   tools\riscv_gcc\bin\riscv-none-elf-gdb.exe ^
-#     -x src/port/ch32h417/debug/ch32h417_v5f.gdb ^
+#     -x src/port/ch32h417/gdb/ch32h417_v5f.gdb ^
 #     build/ch32h417-riscv-gcc/src/port/ch32h417/ch32h417_bringup.elf
 #
 # OpenOCD must already be running before invoking GDB.
@@ -28,8 +28,10 @@ flushregs
 info registers pc sp ra mstatus mepc mcause
 
 # Useful breakpoints for bring-up - uncomment as needed:
-# break main
+hbreak main
 # break Reset_Handler
 # break HardFault_Handler
 
-echo \nCH32H417 V5F connected. Type 'continue' to run.\n
+continue
+
+echo \nCH32H417 V5F connected and stopped at main().\n

@@ -32,6 +32,7 @@ extern "C"
 // MODULE INCLUDES
 #include "xi2c_config.h"
 #include "xi2c_driver.h"
+#include "xi2c_trace.h"
 
     // MACROS //////////////////////////////////////////////////////////////////////////
 
@@ -48,12 +49,27 @@ extern "C"
         bool is_started;
         bool is_busy;
         bool is_bus_acquired;
-        xRETURN_t last_error;
+#if xTRACE_ENABLE && xI2C_TRACE_ENABLE
+        struct xTRACE_Context_t *trace_ctx;
+#endif
     };
 
     // VARIABLES ///////////////////////////////////////////////////////////////////////
 
     // INLINE FUNCTIONS ////////////////////////////////////////////////////////////////
+
+    // Attach a trace context. Call after xI2C_Init, before xI2C_Start.
+    // Passing NULL detaches tracing. No-op when xI2C_TRACE_ENABLE is 0.
+    static inline xRETURN_t xI2C_Trace_Init(xI2C_Context_t *i2c_ctx, struct xTRACE_Context_t *trace_ctx)
+    {
+#if xTRACE_ENABLE && xI2C_TRACE_ENABLE
+        i2c_ctx->trace_ctx = trace_ctx;
+#else
+    (void)i2c_ctx;
+    (void)trace_ctx;
+#endif
+        return xRETURN_OK;
+    }
 
     // FUNCTION PROTOTYPES /////////////////////////////////////////////////////////////
 
@@ -61,8 +77,7 @@ extern "C"
     xRETURN_t xI2C_Deinit(xI2C_Context_t *i2c_ctx);
     xRETURN_t xI2C_Start(xI2C_Context_t *i2c_ctx);
     xRETURN_t xI2C_Stop(xI2C_Context_t *i2c_ctx);
-    xRETURN_t xI2C_Get_Capabilities(const xI2C_Instance_t *instance, xI2C_Capabilities_t *capabilities);
-    xRETURN_t xI2C_Get_Status(const xI2C_Context_t *i2c_ctx, xI2C_Status_t *status);
+
     xRETURN_t xI2C_Set_Callback(xI2C_Context_t *i2c_ctx, const xI2C_Callbacks_t *callbacks, void *user_ctx);
 
     xRETURN_t xI2C_Controller_Write(xI2C_Context_t *i2c_ctx,

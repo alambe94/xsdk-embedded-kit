@@ -30,6 +30,10 @@
 
 // MACROS //////////////////////////////////////////////////////////////////////////
 
+// Approximate CPU cycles consumed per polling iteration (1 MMIO read + compare + branch).
+// Calibrates timeout_loops to wall-clock milliseconds without a hardware timer.
+#define XSPI_CH32_CYCLES_PER_POLL_LOOP 8U
+
 // TYPES ///////////////////////////////////////////////////////////////////////////
 
 // VARIABLES ///////////////////////////////////////////////////////////////////////
@@ -43,14 +47,16 @@ static xRETURN_t ch32_init(void *driver_ctx, const xSPI_Config_t *config);
 static xRETURN_t ch32_deinit(void *driver_ctx);
 static xRETURN_t ch32_start(void *driver_ctx);
 static xRETURN_t ch32_stop(void *driver_ctx);
+static xRETURN_t ch32_set_event_callback(void *driver_ctx, xSPI_Driver_Event_Callback_t callback, void *callback_ctx);
 static xRETURN_t ch32_transfer(void *driver_ctx, const xSPI_Device_t *device, const xSPI_Transaction_t *transaction);
 
 const xSPI_Driver_Ops_t xSPI_CH32H417_Driver_Ops = {
-    .init     = ch32_init,
-    .deinit   = ch32_deinit,
-    .start    = ch32_start,
-    .stop     = ch32_stop,
-    .transfer = ch32_transfer,
+    .init               = ch32_init,
+    .deinit             = ch32_deinit,
+    .start              = ch32_start,
+    .stop               = ch32_stop,
+    .set_event_callback = ch32_set_event_callback,
+    .transfer           = ch32_transfer,
 };
 
 // MODULE FUNCTIONS IMPLEMENTATION /////////////////////////////////////////////////
@@ -118,6 +124,7 @@ static xRETURN_t ch32_init(void *driver_ctx, const xSPI_Config_t *config)
     ctx->spi->CTLR1 = 0U;
     ctx->spi->CTLR2 = 0U;
 
+    ctx->bit_order      = config->bit_order;
     ctx->is_initialized = true;
 
     return xRETURN_OK;
@@ -184,6 +191,11 @@ static xRETURN_t ch32_transfer(void *driver_ctx, const xSPI_Device_t *device, co
         return xRETURN_xERR_xSPI_NOT_STARTED;
     }
 
+    if (transaction->clock_hz == 0U)
+    {
+        return xRETURN_xERR_xSPI_INVALID_ARG;
+    }
+
     ctx->is_busy = true;
 
     // 1. Calculate clock divisor BR[2:0]
@@ -242,10 +254,10 @@ static xRETURN_t ch32_transfer(void *driver_ctx, const xSPI_Device_t *device, co
     }
 
     // LSBFIRST or MSBFIRST
-    // Note: bit order is configured on core init/config layer; for the port driver we can check if LSB is set
-    // In xSPI_Config_t we had bit_order. If we assume MSB first by default, but let's check
-    // We can just query our saved config or default to MSB first. Since CTLR1_LSBFIRST is bit 7, we write it if LSB first is requested.
-    // In our simplified port we default to MSB first.
+    if (ctx->bit_order == xSPI_BIT_ORDER_LSB_FIRST)
+    {
+        ctrl1 |= SPI_CTLR1_LSBFIRST;
+    }
 
     // Apply CTLR1 settings and enable SPI
     ctx->spi->CTLR1 = (uint16_t)(ctrl1 | SPI_CTLR1_SPE);
@@ -254,10 +266,18 @@ static xRETURN_t ch32_transfer(void *driver_ctx, const xSPI_Device_t *device, co
     uint32_t tx_idx = 0U;
     uint32_t rx_idx = 0U;
     uint32_t len    = transaction->length;
-    uint32_t timeout_loops = transaction->timeout_ms * 1000U;
-    if (timeout_loops == 0U)
+
+    // Calibrate iteration count to wall-clock: loops_per_ms ≈ pclk_hz / (cycles_per_loop * 1000).
+    uint32_t loops_per_ms = ctx->pclk_hz / (XSPI_CH32_CYCLES_PER_POLL_LOOP * 1000U);
+    if (loops_per_ms == 0U) { loops_per_ms = 1U; }
+    uint32_t timeout_loops;
+    if (transaction->timeout_ms == 0U)
     {
-        timeout_loops = 1000000U * len;
+        timeout_loops = loops_per_ms * 1000U; // 1-second generous default
+    }
+    else
+    {
+        timeout_loops = (uint32_t)((uint64_t)transaction->timeout_ms * loops_per_ms);
     }
 
     uint32_t guard = 0U;
@@ -328,7 +348,14 @@ static xRETURN_t ch32_transfer(void *driver_ctx, const xSPI_Device_t *device, co
         }
     }
 
-    // Wait until SPI is not busy
+    // Detect transfer timeout before proceeding to BSY drain.
+    if ((tx_idx < len) || (rx_idx < len))
+    {
+        ctx->is_busy = false;
+        return xRETURN_xERR_xSPI_TIMEOUT;
+    }
+
+    // Wait until SPI shift register drains (BSY clears).
     guard = 0U;
     while (((ctx->spi->STATR & SPI_STATR_BSY) != 0U) && (guard < timeout_loops))
     {
@@ -339,12 +366,17 @@ static xRETURN_t ch32_transfer(void *driver_ctx, const xSPI_Device_t *device, co
 
     if (guard >= timeout_loops)
     {
-        ctx->last_error = xRETURN_xERR_xSPI_TIMEOUT;
         return xRETURN_xERR_xSPI_TIMEOUT;
     }
 
-    ctx->last_error = xRETURN_OK;
+    return xRETURN_OK;
+}
 
+static xRETURN_t ch32_set_event_callback(void *driver_ctx, xSPI_Driver_Event_Callback_t callback, void *callback_ctx)
+{
+    (void)driver_ctx;
+    (void)callback;
+    (void)callback_ctx;
     return xRETURN_OK;
 }
 

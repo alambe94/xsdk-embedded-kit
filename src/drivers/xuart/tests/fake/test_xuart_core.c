@@ -34,14 +34,14 @@ static xUART_Start_Config_t s_start_config;
 static xUART_Config_t s_config;
 
 static bool s_event_fired;
-static xUART_Event_t s_last_event;
+static int s_last_event;
 
 // FUNCTION PROTOTYPES /////////////////////////////////////////////////////////////
 
 void setUp(void);
 void tearDown(void);
 static void do_init_and_start(void);
-static void test_on_event(xUART_Context_t *uart_ctx, xUART_Event_t event, const xUART_Event_Info_t *event_info);
+static void test_on_event(xUART_Context_t *uart_ctx, xUART_Event_t event, const xUART_Event_Info_t *event_info, void *user_ctx);
 
 // SETUP / TEARDOWN ////////////////////////////////////////////////////////////////
 
@@ -59,10 +59,9 @@ void setUp(void)
     s_config.stop_bits = xUART_STOP_BITS_1;
     s_config.parity = xUART_PARITY_NONE;
     s_config.flow_control = xUART_FLOW_CONTROL_NONE;
-    s_config.callbacks.on_event = NULL;
 
     s_event_fired = false;
-    s_last_event = (xUART_Event_t)0xFF;
+    s_last_event = 0xFF;
 }
 
 void tearDown(void)
@@ -77,12 +76,13 @@ static void do_init_and_start(void)
     TEST_ASSERT_EQUAL(xRETURN_OK, xUART_Start(&s_uart_ctx, &s_start_config));
 }
 
-static void test_on_event(xUART_Context_t *uart_ctx, xUART_Event_t event, const xUART_Event_Info_t *event_info)
+static void test_on_event(xUART_Context_t *uart_ctx, xUART_Event_t event, const xUART_Event_Info_t *event_info, void *user_ctx)
 {
     (void)uart_ctx;
     (void)event_info;
+    (void)user_ctx;
     s_event_fired = true;
-    s_last_event = event;
+    s_last_event = (int)event;
 }
 
 // TESTS — Init ////////////////////////////////////////////////////////////////////
@@ -406,8 +406,9 @@ void test_Receive_Async_PortFails_ClearsBusy(void)
 void test_Callback_TxComplete_ClearsBusyAndFiresEvent(void)
 {
     uint8_t buf[4] = {0U};
-    s_config.callbacks.on_event = test_on_event;
     do_init_and_start();
+    xUART_Callbacks_t cbs = {.on_event = test_on_event};
+    TEST_ASSERT_EQUAL(xRETURN_OK, xUART_Set_Callback(&s_uart_ctx, &cbs, NULL));
     TEST_ASSERT_EQUAL(xRETURN_OK, xUART_Transmit_Async(&s_uart_ctx, buf, sizeof(buf)));
     TEST_ASSERT_TRUE(s_uart_ctx.is_tx_busy);
 
@@ -421,8 +422,9 @@ void test_Callback_TxComplete_ClearsBusyAndFiresEvent(void)
 void test_Callback_RxComplete_ClearsBusyAndFiresEvent(void)
 {
     uint8_t buf[4] = {0U};
-    s_config.callbacks.on_event = test_on_event;
     do_init_and_start();
+    xUART_Callbacks_t cbs = {.on_event = test_on_event};
+    TEST_ASSERT_EQUAL(xRETURN_OK, xUART_Set_Callback(&s_uart_ctx, &cbs, NULL));
     TEST_ASSERT_EQUAL(xRETURN_OK, xUART_Receive_Async(&s_uart_ctx, buf, sizeof(buf)));
     TEST_ASSERT_TRUE(s_uart_ctx.is_rx_busy);
 
@@ -445,8 +447,9 @@ void test_Abort_Tx_WhileNotBusy_ReturnsOk(void)
 void test_Abort_Tx_WhileBusy_FiresAbortedEvent(void)
 {
     uint8_t buf[4] = {0U};
-    s_config.callbacks.on_event = test_on_event;
     do_init_and_start();
+    xUART_Callbacks_t cbs = {.on_event = test_on_event};
+    TEST_ASSERT_EQUAL(xRETURN_OK, xUART_Set_Callback(&s_uart_ctx, &cbs, NULL));
     TEST_ASSERT_EQUAL(xRETURN_OK, xUART_Transmit_Async(&s_uart_ctx, buf, sizeof(buf)));
 
     TEST_ASSERT_EQUAL(xRETURN_OK, xUART_Abort_Tx(&s_uart_ctx));
@@ -459,8 +462,9 @@ void test_Abort_Tx_WhileBusy_FiresAbortedEvent(void)
 void test_Abort_Rx_WhileBusy_FiresAbortedEvent(void)
 {
     uint8_t buf[4] = {0U};
-    s_config.callbacks.on_event = test_on_event;
     do_init_and_start();
+    xUART_Callbacks_t cbs = {.on_event = test_on_event};
+    TEST_ASSERT_EQUAL(xRETURN_OK, xUART_Set_Callback(&s_uart_ctx, &cbs, NULL));
     TEST_ASSERT_EQUAL(xRETURN_OK, xUART_Receive_Async(&s_uart_ctx, buf, sizeof(buf)));
 
     TEST_ASSERT_EQUAL(xRETURN_OK, xUART_Abort_Rx(&s_uart_ctx));
@@ -468,6 +472,29 @@ void test_Abort_Rx_WhileBusy_FiresAbortedEvent(void)
     TEST_ASSERT_FALSE(s_uart_ctx.is_rx_busy);
     TEST_ASSERT_TRUE(s_event_fired);
     TEST_ASSERT_EQUAL(xUART_EVENT_RX_ABORTED, s_last_event);
+}
+
+void test_SetCallback_NullContext_ReturnsNullPointer(void)
+{
+    xUART_Callbacks_t cbs = {.on_event = test_on_event};
+    TEST_ASSERT_EQUAL(xRETURN_xERR_xUART_NULL_POINTER, xUART_Set_Callback(NULL, &cbs, NULL));
+}
+
+void test_SetCallback_NotInitialized_ReturnsError(void)
+{
+    xUART_Callbacks_t cbs = {.on_event = test_on_event};
+    TEST_ASSERT_EQUAL(xRETURN_xERR_xUART_NOT_INITIALIZED, xUART_Set_Callback(&s_uart_ctx, &cbs, NULL));
+}
+
+void test_SetCallback_WhileBusy_ReturnsError(void)
+{
+    uint8_t buf[4] = {0U};
+    do_init_and_start();
+    xUART_Callbacks_t cbs = {.on_event = test_on_event};
+    TEST_ASSERT_EQUAL(xRETURN_OK, xUART_Transmit_Async(&s_uart_ctx, buf, sizeof(buf)));
+    TEST_ASSERT_TRUE(s_uart_ctx.is_tx_busy);
+
+    TEST_ASSERT_EQUAL(xRETURN_xERR_xUART_TX_BUSY, xUART_Set_Callback(&s_uart_ctx, &cbs, NULL));
 }
 
 void test_Abort_Tx_NotStarted_ReturnsError(void)
@@ -541,6 +568,11 @@ int main(void)
     // Callback
     RUN_TEST(test_Callback_TxComplete_ClearsBusyAndFiresEvent);
     RUN_TEST(test_Callback_RxComplete_ClearsBusyAndFiresEvent);
+
+    // Set_Callback
+    RUN_TEST(test_SetCallback_NullContext_ReturnsNullPointer);
+    RUN_TEST(test_SetCallback_NotInitialized_ReturnsError);
+    RUN_TEST(test_SetCallback_WhileBusy_ReturnsError);
 
     // Abort
     RUN_TEST(test_Abort_Tx_WhileNotBusy_ReturnsOk);

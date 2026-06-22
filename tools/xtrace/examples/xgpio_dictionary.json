@@ -1,0 +1,73 @@
+{
+  "_comment": "xGPIO v2 event dictionary. Keys are decimal event IDs matching xGPIO_TRACE_CODE_* in xgpio_trace.h.",
+  "events": {
+    "256": {
+      "arg_labels": [
+        "unused"
+      ],
+      "name": "GPIO_INIT",
+      "param_count": 1,
+      "track": "xGPIO/Lifecycle",
+      "type": "instant"
+    },
+    "257": {
+      "arg_labels": [
+        "unused"
+      ],
+      "name": "GPIO_DEINIT",
+      "param_count": 1,
+      "track": "xGPIO/Lifecycle",
+      "type": "instant"
+    },
+    "258": {
+      "arg_labels": [
+        "pin",
+        "mode"
+      ],
+      "name": "GPIO_CONFIGURE_PIN",
+      "param_count": 2,
+      "track": "xGPIO/Pin",
+      "type": "instant"
+    },
+    "259": {
+      "arg_labels": [
+        "pin",
+        "level"
+      ],
+      "name": "GPIO_PIN_WRITE",
+      "param_count": 2,
+      "track": "xGPIO/Pin",
+      "type": "instant"
+    },
+    "260": {
+      "arg_labels": [
+        "pin",
+        "level"
+      ],
+      "name": "GPIO_PIN_READ",
+      "param_count": 2,
+      "track": "xGPIO/Pin",
+      "type": "instant"
+    },
+    "261": {
+      "arg_labels": [
+        "pin"
+      ],
+      "name": "GPIO_PIN_TOGGLE",
+      "param_count": 1,
+      "track": "xGPIO/Pin",
+      "type": "instant"
+    },
+    "262": {
+      "arg_labels": [
+        "pin"
+      ],
+      "name": "GPIO_CALLBACK",
+      "param_count": 1,
+      "track": "xGPIO/Callback",
+      "type": "instant"
+    }
+  },
+  "timestamp_hz": 1000000,
+  "version": 2
+}

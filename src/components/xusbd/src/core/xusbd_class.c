@@ -299,6 +299,7 @@ static void device_build_ms_os_20_descriptor(xUSBD_Device_Context_t *device_ctx)
 {
     uint8_t *buffer = device_ctx->mos2_descriptor;
     uint16_t offset = 10;
+    bool use_function_subsets = (device_ctx->class_list_head != NULL) && (device_ctx->class_list_head->next != NULL);
 
     // Header (Set Header Descriptor)
     USB_MS_OS_20_Set_Header_Descriptor_t *set_hdr = (USB_MS_OS_20_Set_Header_Descriptor_t *)buffer;
@@ -307,64 +308,115 @@ static void device_build_ms_os_20_descriptor(xUSBD_Device_Context_t *device_ctx)
     set_hdr->dwWindowsVersion = 0x06030000;
     set_hdr->wTotalLength = 0; // Updated later
 
-    // Configuration Subset Header
-    USB_MS_OS_20_Subset_Header_Configuration_t *config_hdr = (USB_MS_OS_20_Subset_Header_Configuration_t *)&buffer[10];
-    config_hdr->wLength = 8;
-    config_hdr->wDescriptorType = USB_MOS2_SUBSET_HEADER_CONFIGURATION;
-    config_hdr->bConfigurationValue = 0x00;
-    config_hdr->bReserved = 0x00;
-    config_hdr->wTotalLength = 0; // Updated later
-
-    offset += 8;
+    USB_MS_OS_20_Subset_Header_Configuration_t *config_hdr = NULL;
+    if (use_function_subsets)
+    {
+        config_hdr = (USB_MS_OS_20_Subset_Header_Configuration_t *)&buffer[10];
+        config_hdr->wLength = 8;
+        config_hdr->wDescriptorType = USB_MOS2_SUBSET_HEADER_CONFIGURATION;
+        config_hdr->bConfigurationValue = 0x00;
+        config_hdr->bReserved = 0x00;
+        config_hdr->wTotalLength = 0; // Updated later
+        offset += 8;
+    }
 
     xUSBD_Class_Context_t *curr = device_ctx->class_list_head;
     while (curr != NULL)
     {
-        if ((curr->mos_props != NULL) && (curr->mos_props[0].property_name != NULL))
+        bool has_compat_id = (curr->ms_compatible_id != NULL) && (curr->ms_compatible_id[0] != '\0');
+        bool has_mos_props = (curr->mos_props != NULL) && (curr->mos_props[0].property_name != NULL);
+
+        if (has_compat_id || has_mos_props)
         {
-            if (offset + 8U > xUSBD_MAX_MOS2_DESCRIPTOR_SIZE)
+            USB_MS_OS_20_Subset_Header_Function_t *func_hdr = NULL;
+            uint16_t func_length = 0;
+
+            if (use_function_subsets)
             {
-                device_ctx->mos2_length = 0;
-                return;
-            }
-
-            USB_MS_OS_20_Subset_Header_Function_t *func_hdr = (USB_MS_OS_20_Subset_Header_Function_t *)&buffer[offset];
-            func_hdr->wLength = 8;
-            func_hdr->wDescriptorType = USB_MOS2_SUBSET_HEADER_FUNCTION;
-            func_hdr->bFirstInterface = curr->first_interface;
-            func_hdr->bReserved = 0x00;
-            func_hdr->wSubsetLength = 0;
-
-            offset += 8;
-
-            uint16_t func_length = 8;
-            for (uint32_t i = 0U; curr->mos_props[i].property_name; i++)
-            {
-                xUSBD_MOS_Property_t *prop = &curr->mos_props[i];
-                size_t name_len = strlen(prop->property_name);
-                xASSERT(name_len < 0x7FFFU, "MOS property name too long");
-                uint16_t name_utf16_len = (uint16_t)((name_len + 1U) * 2U);
-                uint16_t prop_size = 10U + name_utf16_len + prop->data_length;
-
-                if (offset + prop_size > xUSBD_MAX_MOS2_DESCRIPTOR_SIZE)
+                if (offset + 8U > xUSBD_MAX_MOS2_DESCRIPTOR_SIZE)
                 {
                     device_ctx->mos2_length = 0;
                     return;
                 }
-                uint16_t prop_length = mos_append_registry_property(&buffer[offset], prop, name_utf16_len);
-                offset += prop_length;
-                func_length += prop_length;
+
+                func_hdr = (USB_MS_OS_20_Subset_Header_Function_t *)&buffer[offset];
+                func_hdr->wLength = 8;
+                func_hdr->wDescriptorType = USB_MOS2_SUBSET_HEADER_FUNCTION;
+                func_hdr->bFirstInterface = curr->first_interface;
+                func_hdr->bReserved = 0x00;
+                func_hdr->wSubsetLength = 0;
+
+                offset += 8;
+                func_length = 8;
             }
 
-            func_hdr->wSubsetLength = func_length;
+            // CompatibleID Feature Descriptor (wDescriptorType=0x0003, 20 bytes).
+            // This is what Windows reads to select the inbox driver (e.g. WinUSB.sys).
+            if (has_compat_id)
+            {
+                if (offset + 20U > xUSBD_MAX_MOS2_DESCRIPTOR_SIZE)
+                {
+                    device_ctx->mos2_length = 0;
+                    return;
+                }
+                uint8_t *feat = &buffer[offset];
+                feat[0]  = 20U;        feat[1]  = 0U;       // wLength = 20
+                feat[2]  = (uint8_t)(USB_MOS2_FEATURE_COMPATIBLE_ID & 0xFFU);
+                feat[3]  = (uint8_t)(USB_MOS2_FEATURE_COMPATIBLE_ID >> 8U);  // wDescriptorType = 0x0003
+                // CompatibleID and SubCompatibleID are fixed 8-byte zero-padded fields.
+                memset(&feat[4U], 0, 16U);
+                for (uint32_t k = 0U; k < 8U && curr->ms_compatible_id[k] != '\0'; k++)
+                {
+                    feat[4U + k] = (uint8_t)curr->ms_compatible_id[k];
+                }
+
+                offset += 20U;
+                if (use_function_subsets)
+                {
+                    func_length += 20U;
+                }
+            }
+
+            // Registry Property Descriptors (wDescriptorType=0x0004, e.g. DeviceInterfaceGUID).
+            if (has_mos_props)
+            {
+                for (uint32_t i = 0U; curr->mos_props[i].property_name; i++)
+                {
+                    xUSBD_MOS_Property_t *prop = &curr->mos_props[i];
+                    size_t name_len = strlen(prop->property_name);
+                    xASSERT(name_len < 0x7FFFU, "MOS property name too long");
+                    uint16_t name_utf16_len = (uint16_t)((name_len + 1U) * 2U);
+                    uint16_t prop_size = 10U + name_utf16_len + prop->data_length;
+
+                    if (offset + prop_size > xUSBD_MAX_MOS2_DESCRIPTOR_SIZE)
+                    {
+                        device_ctx->mos2_length = 0;
+                        return;
+                    }
+                    uint16_t prop_length = mos_append_registry_property(&buffer[offset], prop, name_utf16_len);
+                    offset += prop_length;
+                    if (use_function_subsets)
+                    {
+                        func_length += prop_length;
+                    }
+                }
+            }
+
+            if (use_function_subsets)
+            {
+                func_hdr->wSubsetLength = func_length;
+            }
         }
         curr = curr->next;
     }
 
-    if (offset > 18)
+    if (offset > 10)
     {
         set_hdr->wTotalLength = offset;
-        config_hdr->wTotalLength = offset - 10;
+        if (use_function_subsets)
+        {
+            config_hdr->wTotalLength = offset - 10;
+        }
         device_ctx->mos2_length = offset;
     }
     else
@@ -407,7 +459,7 @@ static void device_build_bos_descriptor(xUSBD_Device_Context_t *device_ctx, USB_
         ss->bDevCapabilityType = USB_CAPABILITY_SUPER_SPEED_USB;
         ss->bmAttributes = 0;
         ss->wSpeedsSupported = xCPU_TO_LE16(0x000E); // FS, HS, SS
-        ss->bFunctionalitySupport = 1;
+        ss->bFunctionalitySupport = 3; // SS (SuperSpeed) minimum
         ss->bU1DevExitLat = 10;
         ss->wU2DevExitLat = xCPU_TO_LE16(0);
         total_length += 10;

@@ -32,6 +32,7 @@ extern "C"
 // MODULE INCLUDES
 #include "xspi_config.h"
 #include "xspi_driver.h"
+#include "xspi_trace.h"
 
     // MACROS //////////////////////////////////////////////////////////////////////////
 
@@ -44,12 +45,29 @@ extern "C"
         bool is_initialized;
         bool is_started;
         bool is_busy;
-        xRETURN_t last_error;
+        xSPI_Callbacks_t callbacks;
+        void *user_ctx;
+#if xTRACE_ENABLE && xSPI_TRACE_ENABLE
+        struct xTRACE_Context_t *trace_ctx;
+#endif
     };
 
     // VARIABLES ///////////////////////////////////////////////////////////////////////
 
     // INLINE FUNCTIONS ////////////////////////////////////////////////////////////////
+
+    // Attach a trace context. Call after xSPI_Init, before xSPI_Start.
+    // Passing NULL detaches tracing. No-op when xSPI_TRACE_ENABLE is 0.
+    static inline xRETURN_t xSPI_Trace_Init(xSPI_Context_t *context, struct xTRACE_Context_t *trace_ctx)
+    {
+#if xTRACE_ENABLE && xSPI_TRACE_ENABLE
+        context->trace_ctx = trace_ctx;
+#else
+    (void)context;
+    (void)trace_ctx;
+#endif
+        return xRETURN_OK;
+    }
 
     // FUNCTION PROTOTYPES /////////////////////////////////////////////////////////////
 
@@ -57,6 +75,7 @@ extern "C"
     xRETURN_t xSPI_Deinit(xSPI_Context_t *context);
     xRETURN_t xSPI_Start(xSPI_Context_t *context);
     xRETURN_t xSPI_Stop(xSPI_Context_t *context);
+    xRETURN_t xSPI_Set_Callback(xSPI_Context_t *context, const xSPI_Callbacks_t *callbacks, void *user_ctx);
     xRETURN_t xSPI_Transfer(const xSPI_Device_t *device, const xSPI_Transaction_t *transaction);
 
 #ifdef __cplusplus

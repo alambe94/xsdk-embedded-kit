@@ -8,14 +8,16 @@ target_include_directories(xspi
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(xspi PUBLIC xsdk::xutil)
+target_link_libraries(xspi PUBLIC xsdk::xutil xsdk::xtrace)
 
 if(xSDK_SOC_AM243X)
     target_sources(xspi PRIVATE
         port/hil/am243x/xspi_drv.c
     )
-    target_include_directories(xspi PRIVATE
+    target_include_directories(xspi PUBLIC
         port/hil/am243x
+    )
+    target_include_directories(xspi PRIVATE
         ${PROJECT_SOURCE_DIR}/src/third_party/ti/mcupsdk_core/source
         ${PROJECT_SOURCE_DIR}/src/third_party/ti/mcupsdk_core/source/drivers/hw_include
     )

@@ -413,6 +413,50 @@ static bool run_phase8(void)
 }
 
 // ===========================================================================
+// Phase 9 - high-concurrency mutex stress test
+// ===========================================================================
+
+static volatile uint32_t s_stress_shared_val;
+static volatile bool s_stress_stop;
+
+static void phase9_worker(void *arg)
+{
+    (void)arg;
+    while (!s_stress_stop)
+    {
+        (void)xRTOS_Mutex_Lock(&s_mtx, xRTOS_WAIT_FOREVER);
+        uint32_t temp = s_stress_shared_val;
+        (void)xRTOS_Task_Delay(1U); // Yield while holding mutex (stress preemption)
+        s_stress_shared_val = temp + 1U;
+        (void)xRTOS_Mutex_Unlock(&s_mtx);
+        (void)xRTOS_Task_Delay(1U); // Allow other tasks to run
+    }
+    xRTOS_Task_Exit();
+}
+
+static bool run_phase9(void)
+{
+    s_stress_shared_val = 0U;
+    s_stress_stop = false;
+    (void)xRTOS_Mutex_Init(&s_mtx, "StressMtx");
+
+    create_helper(&s_helper1_ctx, 1U, 2U, phase9_worker, NULL, s_helper1_stack, 256U);
+    create_helper(&s_helper2_ctx, 2U, 2U, phase9_worker, NULL, s_helper2_stack, 256U);
+    create_helper(&s_helper3_ctx, 3U, 2U, phase9_worker, NULL, s_helper3_stack, 256U);
+
+    (void)xRTOS_Task_Delay(40U); // Let them contend under tick timer interrupts
+
+    s_stress_stop = true;
+    (void)xRTOS_Task_Delay(10U); // Allow all helpers to exit
+
+    uart_puts("  stress: final shared val=");
+    uart_puti(s_stress_shared_val);
+    uart_puts("\n");
+
+    return (s_stress_shared_val > 5U);
+}
+
+// ===========================================================================
 // Supervisor
 // ===========================================================================
 
@@ -423,16 +467,16 @@ static void supervisor_entry(void *arg)
     uart_puts("\nxRTOS Regression Test\n");
 
     typedef bool (*phase_fn_t)(void);
-    static const phase_fn_t phases[8] = {
-        run_phase1, run_phase2, run_phase3, run_phase4, run_phase5, run_phase6, run_phase7, run_phase8,
+    static const phase_fn_t phases[9] = {
+        run_phase1, run_phase2, run_phase3, run_phase4, run_phase5, run_phase6, run_phase7, run_phase8, run_phase9,
     };
 
-    static const char *const names[8] = {
-        "sem-counting", "sem-timeout", "mutex", "event-any", "event-all", "queue-fifo", "notify", "round-robin",
+    static const char *const names[9] = {
+        "sem-counting", "sem-timeout", "mutex", "event-any", "event-all", "queue-fifo", "notify", "round-robin", "mutex-stress",
     };
 
     uint32_t pass_count = 0U;
-    for (uint32_t i = 0U; i < 8U; i++)
+    for (uint32_t i = 0U; i < 9U; i++)
     {
         bool ok = phases[i]();
         uart_puts("  Phase ");
@@ -449,7 +493,7 @@ static void supervisor_entry(void *arg)
     }
 
     uart_puts("\n=======================================================\n");
-    if (pass_count == 8U)
+    if (pass_count == 9U)
     {
         uart_puts("REGRESSION PASS\n");
     }
@@ -457,7 +501,7 @@ static void supervisor_entry(void *arg)
     {
         uart_puts("REGRESSION FAIL: ");
         uart_puti(pass_count);
-        uart_puts("/8 phases passed\n");
+        uart_puts("/9 phases passed\n");
     }
     uart_puts("=======================================================\n");
 

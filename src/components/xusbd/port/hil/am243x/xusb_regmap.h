@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // @file xusb_regmap.h
-// @brief Lightweight MMIO register-map helpers for the AM64x USB port driver.
+// @brief Lightweight MMIO register-map helpers for the AM243x USB port driver.
 //
 // Provides three types and two inline read/write accessors that mirror the
 // Linux-kernel regmap_field pattern, adapted for bare-metal use:

@@ -61,7 +61,7 @@ extern "C"
     // FUNCTION PROTOTYPES /////////////////////////////////////////////////////////
     xUSBD_Class_Driver_t *xUSBD_WIN_Class(void);
     xRETURN_t xUSBD_WIN_Prepare_To_Receive(xUSBD_Class_Context_t *class_ctx, uint8_t *data, uint32_t length);
-    xRETURN_t xUSBD_WIN_Transmit(xUSBD_Class_Context_t *class_ctx, uint8_t *data, uint32_t length);
+    xRETURN_t xUSBD_WIN_Transmit(xUSBD_Class_Context_t *class_ctx, uint8_t *data, uint32_t length, bool is_zlp_required);
 
     xRETURN_t xUSBD_WIN_Set_Callbacks(xUSBD_Class_Context_t *class_ctx, xUSBD_WIN_Callbacks_t *callbacks);
 

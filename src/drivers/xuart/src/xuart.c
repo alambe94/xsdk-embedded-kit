@@ -129,9 +129,9 @@ static void core_event_sink(void *callback_ctx, xUART_Event_t event, const xUART
         break;
     }
 
-    if (uart_ctx->config.callbacks.on_event != NULL)
+    if (uart_ctx->callbacks.on_event != NULL)
     {
-        uart_ctx->config.callbacks.on_event(uart_ctx, event, event_info);
+        uart_ctx->callbacks.on_event(uart_ctx, event, event_info, uart_ctx->user_ctx);
     }
 }
 
@@ -308,6 +308,45 @@ xRETURN_t xUART_Stop(xUART_Context_t *uart_ctx)
     uart_ctx->is_started = false;
 
     xUART_LOG(xRETURN_OK, "Stop: ok");
+
+    return xRETURN_OK;
+}
+
+xRETURN_t xUART_Set_Callback(xUART_Context_t *uart_ctx, const xUART_Callbacks_t *callbacks, void *user_ctx)
+{
+    if (uart_ctx == NULL)
+    {
+        xUART_LOG(xRETURN_xERR_xUART_NULL_POINTER, "Set_Callback: null context");
+        return xRETURN_xERR_xUART_NULL_POINTER;
+    }
+
+    if (!uart_ctx->is_initialized)
+    {
+        xUART_LOG(xRETURN_xERR_xUART_NOT_INITIALIZED, "Set_Callback: not initialized");
+        return xRETURN_xERR_xUART_NOT_INITIALIZED;
+    }
+
+    if (uart_ctx->is_tx_busy)
+    {
+        xUART_LOG(xRETURN_xERR_xUART_TX_BUSY, "Set_Callback: TX busy");
+        return xRETURN_xERR_xUART_TX_BUSY;
+    }
+
+    if (uart_ctx->is_rx_busy)
+    {
+        xUART_LOG(xRETURN_xERR_xUART_RX_BUSY, "Set_Callback: RX busy");
+        return xRETURN_xERR_xUART_RX_BUSY;
+    }
+
+    if (callbacks != NULL)
+    {
+        uart_ctx->callbacks = *callbacks;
+    }
+    else
+    {
+        (void)memset(&uart_ctx->callbacks, 0, sizeof(uart_ctx->callbacks));
+    }
+    uart_ctx->user_ctx = user_ctx;
 
     return xRETURN_OK;
 }

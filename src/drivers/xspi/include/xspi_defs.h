@@ -91,6 +91,24 @@ extern "C"
         uint8_t bits_per_word;
     } xSPI_Transaction_t;
 
+    typedef enum
+    {
+        xSPI_EVENT_TRANSFER_COMPLETE,
+        xSPI_EVENT_ERROR,
+    } xSPI_Event_t;
+
+    typedef struct
+    {
+        xRETURN_t error_code;
+        uint32_t bytes_transferred;
+    } xSPI_Event_Info_t;
+
+    typedef struct xSPI_Callbacks_t xSPI_Callbacks_t;
+    struct xSPI_Callbacks_t
+    {
+        void (*on_event)(xSPI_Context_t *spi_ctx, xSPI_Event_t event, const xSPI_Event_Info_t *event_info, void *user_ctx);
+    };
+
     // VARIABLES ///////////////////////////////////////////////////////////////////////
 
     // INLINE FUNCTIONS ////////////////////////////////////////////////////////////////

@@ -333,7 +333,7 @@ def cross_build(
             run([size_tool, str(library)], output, append=offset > 0)
         return
 
-    if preset == "ch32h417-riscv-gcc":
+    if preset.startswith("ch32h417-riscv-gcc"):
         size_tool = find_executable("riscv-none-elf-size")
         executables = sorted(build_dir.rglob("*.elf"))
         if len(executables) != 1:

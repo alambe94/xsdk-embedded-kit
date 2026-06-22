@@ -1,0 +1,9 @@
+xsdk_add_test(xgpio_core_test
+    SOURCES
+        fake/test_xgpio_core.c
+        ../port/fake/xgpio_fake.c
+    LIBS
+        xsdk::xgpio
+    INCLUDES
+        ${CMAKE_CURRENT_SOURCE_DIR}/../port/fake
+)

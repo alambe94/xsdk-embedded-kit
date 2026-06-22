@@ -259,8 +259,7 @@ int32_t Drivers_open(void)
         .data_bits = xUART_DATA_BITS_8,
         .stop_bits = xUART_STOP_BITS_1,
         .parity = xUART_PARITY_NONE,
-        .flow_control = xUART_FLOW_CONTROL_NONE,
-        .callbacks.on_event = NULL
+        .flow_control = xUART_FLOW_CONTROL_NONE
     };
 
     if (xUART_Init(&s_sbl_uart_ctx, &config) != xRETURN_OK)

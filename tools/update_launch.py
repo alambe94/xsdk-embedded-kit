@@ -16,6 +16,67 @@ GENERATED_NOTICE = (
 
 
 def launch_configurations(preset: str) -> list[dict[str, object]] | None:
+    if preset == "ch32h417-riscv-gcc-ram":
+        return [
+            {
+                "name": "CH32H417 IRAM: load and run",
+                "cwd": "${workspaceFolder}",
+                "type": "cortex-debug",
+                "request": "launch",
+                "servertype": "openocd",
+                "serverpath": "${workspaceFolder}/tools/openocd_wch/bin/openocd.exe",
+                "gdbPath": "${workspaceFolder}/tools/riscv_gcc/bin/riscv-none-elf-gdb.exe",
+                "executable": "${workspaceFolder}/build/ch32h417-riscv-gcc-ram/src/applications/ch32h417_bringup/ch32h417_bringup.elf",
+                "configFiles": [
+                    "${workspaceFolder}/src/port/ch32h417/gdb/ch32h417_v5f_wch_ram.cfg"
+                ],
+                "preLaunchTask": "xSDK: build CH32H417 IRAM (RISC-V GCC RAM)",
+                "overrideLaunchCommands": [
+                    "set architecture riscv:rv32",
+                    "set remotetimeout 120",
+                    "set confirm off",
+                    "monitor halt",
+                    "set $tselect = 0",
+                    "set $tdata1  = 0",
+                    "set $tselect = 1",
+                    "set $tdata1  = 0",
+                    "set $tselect = 2",
+                    "set $tdata1  = 0",
+                    "set $tselect = 3",
+                    "set $tdata1  = 0",
+                    "load",
+                    "set $pc = xSDK_RAM_Entry",
+                    "maintenance flush register-cache",
+                    "monitor resume",
+                    "disconnect"
+                ],
+                "serverStartupDelay": 5000,
+                "showDevDebugOutput": "raw",
+                "runToEntryPoint": ""
+            },
+            {
+                "name": "CH32H417 IRAM: attach and inspect",
+                "cwd": "${workspaceFolder}",
+                "type": "cortex-debug",
+                "request": "attach",
+                "servertype": "openocd",
+                "serverpath": "${workspaceFolder}/tools/openocd_wch/bin/openocd.exe",
+                "gdbPath": "${workspaceFolder}/tools/riscv_gcc/bin/riscv-none-elf-gdb.exe",
+                "executable": "${workspaceFolder}/build/ch32h417-riscv-gcc-ram/src/applications/ch32h417_bringup/ch32h417_bringup.elf",
+                "configFiles": [
+                    "${workspaceFolder}/src/port/ch32h417/gdb/ch32h417_v5f_wch_ram.cfg"
+                ],
+                "overrideAttachCommands": [
+                    "set architecture riscv:rv32",
+                    "set remotetimeout 30",
+                    "set confirm off",
+                    "monitor halt",
+                    "source ${workspaceFolder}/src/port/ch32h417/gdb/ch32h417_v5f_ram.gdb"
+                ],
+                "serverStartupDelay": 5000,
+                "showDevDebugOutput": "raw"
+            }
+        ]
     if preset == "ch32h417-riscv-gcc":
         return [
             {
@@ -26,19 +87,20 @@ def launch_configurations(preset: str) -> list[dict[str, object]] | None:
                 "servertype": "openocd",
                 "serverpath": "${workspaceFolder}/tools/openocd_wch/bin/openocd.exe",
                 "gdbPath": "${workspaceFolder}/tools/riscv_gcc/bin/riscv-none-elf-gdb.exe",
-                "executable": "${workspaceFolder}/build/ch32h417-riscv-gcc/src/port/ch32h417/ch32h417_bringup.elf",
+                "executable": "${workspaceFolder}/build/ch32h417-riscv-gcc/src/applications/ch32h417_bringup/ch32h417_bringup.elf",
                 "configFiles": [
-                    "${workspaceFolder}/src/port/ch32h417/debug/ch32h417_v5f_wch.cfg"
+                    "${workspaceFolder}/src/port/ch32h417/gdb/ch32h417_v5f_wch.cfg"
                 ],
                 "gdbTarget": "localhost:3333",
                 "runToEntryPoint": "main",
+                "preLaunchTask": "xSDK: build CH32H417 bringup (RISC-V GCC)",
                 "overrideLaunchCommands": [
                     "monitor halt",
                     "monitor reg dcsr 0x400003",
                     "monitor reg pc 0x00010000",
                     "load",
                     "compare-sections",
-                    "tbreak main",
+                    "thbreak main",
                     "continue"
                 ],
                 "overrideResetCommands": [
@@ -46,7 +108,7 @@ def launch_configurations(preset: str) -> list[dict[str, object]] | None:
                     "monitor reg dcsr 0x400003",
                     "monitor reg pc 0x00010000",
                     "load",
-                    "tbreak main",
+                    "thbreak main",
                     "continue"
                 ]
             }
@@ -64,7 +126,7 @@ def launch_configurations(preset: str) -> list[dict[str, object]] | None:
                 "armToolchainPath": "${workspaceFolder}/tools/arm_gcc/bin",
                 "executable": "${workspaceFolder}/build/am243x-ticlang/src/applications/am243x_bringup/am243x_bringup.out",
                 "configFiles": [
-                    "${workspaceFolder}/tools/gdb/xsdk_openocd_am243x.cfg"
+                    "${workspaceFolder}/src/port/am243x/gdb/am243x.cfg"
                 ],
                 "searchDir": [
                     "${workspaceFolder}/tools/openocd/openocd/scripts"
@@ -91,7 +153,7 @@ def launch_configurations(preset: str) -> list[dict[str, object]] | None:
                 "armToolchainPath": "${workspaceFolder}/tools/arm_gcc/bin",
                 "executable": "${workspaceFolder}/build/am243x-ticlang/src/applications/am243x_bringup/am243x_bringup.out",
                 "configFiles": [
-                    "${workspaceFolder}/tools/gdb/xsdk_openocd_am243x.cfg"
+                    "${workspaceFolder}/src/port/am243x/gdb/am243x.cfg"
                 ],
                 "searchDir": [
                     "${workspaceFolder}/tools/openocd/openocd/scripts"

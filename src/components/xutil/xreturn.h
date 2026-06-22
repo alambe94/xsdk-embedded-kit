@@ -76,6 +76,7 @@ extern "C"
 #define xRETURN_xUART_MODULE   0x000EU
 #define xRETURN_xI2C_MODULE    0x000FU
 #define xRETURN_xTIMER_MODULE  0x0010U
+#define xRETURN_xGPIO_MODULE   0x0011U
 
 #define xRETURN_OK ((xRETURN_t)0)
 

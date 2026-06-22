@@ -46,11 +46,11 @@ extern "C"
     {
         SPI_TypeDef             *spi;
         uint32_t                 pclk_hz;
+        xSPI_Bit_Order_t         bit_order;
 
         bool                     is_initialized;
         bool                     is_started;
         bool                     is_busy;
-        xRETURN_t                last_error;
     } xSPI_CH32H417_Context_t;
 
     // VARIABLES ///////////////////////////////////////////////////////////////////////

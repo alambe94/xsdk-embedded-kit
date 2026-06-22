@@ -34,6 +34,7 @@ extern "C"
 #include "ch32h417.h"
 
 // MODULE INCLUDES
+#include "xgpio.h"
 #include "xgpio_drv.h"
 #include "xrcc_drv.h"
 #include "xpfic_drv.h"
@@ -44,6 +45,14 @@ extern "C"
     // TYPES ///////////////////////////////////////////////////////////////////////
 
     // VARIABLES ///////////////////////////////////////////////////////////////////
+    extern xGPIO_Context_t g_gpio_a_ctx;
+    extern xGPIO_CH32H417_Context_t g_ch32_gpio_a_ctx;
+
+    extern xGPIO_Context_t g_gpio_b_ctx;
+    extern xGPIO_CH32H417_Context_t g_ch32_gpio_b_ctx;
+
+    extern xGPIO_Context_t g_gpio_c_ctx;
+    extern xGPIO_CH32H417_Context_t g_ch32_gpio_c_ctx;
 
     // INLINE FUNCTIONS ////////////////////////////////////////////////////////////
 

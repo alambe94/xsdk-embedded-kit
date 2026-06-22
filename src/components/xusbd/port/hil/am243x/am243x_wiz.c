@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// @file am64x_wiz.c
-// @brief AM64x SERDES Wrapper (WIZ) driver implementation.
+// @file am243x_wiz.c
+// @brief AM243x SERDES Wrapper (WIZ) driver implementation.
 
 // INCLUDES ////////////////////////////////////////////////////////////////////////
 // COMPILER INCLUDES
@@ -24,7 +24,7 @@
 // SYSTEM INCLUDES
 
 // MODULE INCLUDES
-#include "am64x_phy.h"
+#include "am243x_phy.h"
 
 // MACROS /////////////////////////////////////////////////////////////////////////
 // ------------------------------------------------------------------
@@ -108,11 +108,11 @@ typedef struct
     struct regmap_field p_mac_div_sel1[WIZ_MAX_LANES];
 
     uint32_t lane_phy_type[WIZ_MAX_LANES];
-} am64x_wiz_t;
+} am243x_wiz_t;
 
 // VARIABLES //////////////////////////////////////////////////////////////////////
 // Driver state - statically allocated, zero heap
-static am64x_wiz_t _wiz; // single static instance
+static am243x_wiz_t _wiz; // single static instance
 
 // ------------------------------------------------------------------
 // Static reg_field descriptors
@@ -155,14 +155,14 @@ static const struct reg_field RF_P_MAC_DIV_SEL1 = REG_FIELD(WIZ_LANEDIV(0), 0, 8
 
 // FUNCTION PROTOTYPES /////////////////////////////////////////////////////////////
 static void field_init(struct regmap_field *f, struct regmap *rm, struct reg_field rf);
-static void wiz_regfield_init(am64x_wiz_t *w);
-static int wiz_reset(am64x_wiz_t *w);
-static void wiz_clock_init(am64x_wiz_t *w, uint32_t core_hz);
-static int wiz_mode_select(am64x_wiz_t *w);
-static int wiz_p_mac_div_sel(am64x_wiz_t *w);
-static int wiz_init_raw_interface(am64x_wiz_t *w);
-static int wiz_phy_fullrt_div(am64x_wiz_t *w);
-static int wiz_init(am64x_wiz_t *w);
+static void wiz_regfield_init(am243x_wiz_t *w);
+static int wiz_reset(am243x_wiz_t *w);
+static void wiz_clock_init(am243x_wiz_t *w, uint32_t core_hz);
+static int wiz_mode_select(am243x_wiz_t *w);
+static int wiz_p_mac_div_sel(am243x_wiz_t *w);
+static int wiz_init_raw_interface(am243x_wiz_t *w);
+static int wiz_phy_fullrt_div(am243x_wiz_t *w);
+static int wiz_init(am243x_wiz_t *w);
 
 // MODULE FUNCTIONS IMPLEMENTATION /////////////////////////////////////////////////
 // ------------------------------------------------------------------
@@ -177,7 +177,7 @@ static void field_init(struct regmap_field *f, struct regmap *rm, struct reg_fie
     f->mask = _regmap_mask(rf.lsb, rf.msb);
 }
 
-static void wiz_regfield_init(am64x_wiz_t *w)
+static void wiz_regfield_init(am243x_wiz_t *w)
 {
     struct regmap *rm = &w->regmap;
 
@@ -191,7 +191,7 @@ static void wiz_regfield_init(am64x_wiz_t *w)
     field_init(&w->typec_ln10_swap, rm, RF_TYPEC_LN10_SWAP);
     field_init(&w->typec_ln23_swap, rm, RF_TYPEC_LN23_SWAP);
 
-    // clock mux selects (AM64x uses WIZ_SERDES_RST fields directly)
+    // clock mux selects (AM243x uses WIZ_SERDES_RST fields directly)
     field_init(&w->mux_sel[0], rm, RF_PLL0_REFCLK_MUX_SEL);
     field_init(&w->mux_sel[1], rm, RF_PLL1_REFCLK_MUX_SEL);
     field_init(&w->mux_sel[2], rm, RF_REFCLK_DIG_SEL);
@@ -210,7 +210,7 @@ static void wiz_regfield_init(am64x_wiz_t *w)
 }
 
 // POR pulse - resets the SERDES block
-static int wiz_reset(am64x_wiz_t *w)
+static int wiz_reset(am243x_wiz_t *w)
 {
     int ret;
 
@@ -230,7 +230,7 @@ static int wiz_reset(am64x_wiz_t *w)
 //  * All three mux outputs (PLL0, PLL1, REFCLK_DIG) are routed to the core
 //  * reference clock - the external reference clock is not used, so
 //  * pma_cmn_refclk_mode is derived from core_hz as well.
-static void wiz_clock_init(am64x_wiz_t *w, uint32_t core_hz)
+static void wiz_clock_init(am243x_wiz_t *w, uint32_t core_hz)
 {
     regmap_field_write(&w->pma_cmn_refclk_int_mode, (core_hz >= REF_CLK_100MHZ) ? 0x1U : 0x3U);
     regmap_field_write(&w->pma_cmn_refclk1_int_mode, (core_hz >= REF_CLK_100MHZ) ? 0x1U : 0x3U);
@@ -257,7 +257,7 @@ static void wiz_clock_init(am64x_wiz_t *w, uint32_t core_hz)
 }
 
 // Set lane standard mode and MAC source for the configured PHY type
-static int wiz_mode_select(am64x_wiz_t *w)
+static int wiz_mode_select(am243x_wiz_t *w)
 {
     uint32_t i;
 
@@ -297,7 +297,7 @@ static int wiz_mode_select(am64x_wiz_t *w)
 }
 
 // Configure MAC dividers for Ethernet PHY types
-static int wiz_p_mac_div_sel(am64x_wiz_t *w)
+static int wiz_p_mac_div_sel(am243x_wiz_t *w)
 {
     uint32_t i;
 
@@ -322,7 +322,7 @@ static int wiz_p_mac_div_sel(am64x_wiz_t *w)
 }
 
 // Enable raw (non-framed) alignment on all lanes
-static int wiz_init_raw_interface(am64x_wiz_t *w)
+static int wiz_init_raw_interface(am243x_wiz_t *w)
 {
     uint32_t i;
 
@@ -342,7 +342,7 @@ static int wiz_init_raw_interface(am64x_wiz_t *w)
 }
 
 // Configure full-rate divider for the lane PHY type
-static int wiz_phy_fullrt_div(am64x_wiz_t *w)
+static int wiz_phy_fullrt_div(am243x_wiz_t *w)
 {
     uint32_t i;
 
@@ -370,7 +370,7 @@ static int wiz_phy_fullrt_div(am64x_wiz_t *w)
 }
 
 // Full WIZ hardware initialisation sequence
-static int wiz_init(am64x_wiz_t *w)
+static int wiz_init(am243x_wiz_t *w)
 {
     int ret;
 
@@ -414,7 +414,7 @@ static int wiz_init(am64x_wiz_t *w)
 
     // cdns_torrent_phy_init(): write Torrent register tables BEFORE
     //      * deasserting the WIZ resets (matches Linux driver order).
-    am64x_torrent_phy_configure((uintptr_t)w->regmap.base, 1); // 0 = no SSC
+    am243x_torrent_phy_configure((uintptr_t)w->regmap.base, 1); // 0 = no SSC
 
     // cdns_torrent_phy_on() step 1: deassert lane reset (p_enable).
     //      * cdns_torrent_phy_on() step 2: deassert PHY reset (phy_reset_n).
@@ -430,7 +430,7 @@ static int wiz_init(am64x_wiz_t *w)
     regmap_field_write(&w->phy_reset_n, 1U);
 
     // cdns_torrent_phy_on() step 3: poll CMN_READY + PCS link ready.
-    return am64x_torrent_phy_wait_ready((uintptr_t)w->regmap.base, 100000U);
+    return am243x_torrent_phy_wait_ready((uintptr_t)w->regmap.base, 100000U);
 }
 
 // PUBLIC FUNCTIONS IMPLEMENTATION /////////////////////////////////////////////////
@@ -439,7 +439,7 @@ static int wiz_init(am64x_wiz_t *w)
 // ------------------------------------------------------------------
 
 // *
-//  * am64x_wiz_init() - Initialise the AM64x WIZ SERDES PHY wrapper
+//  * am243x_wiz_init() - Initialise the AM243x WIZ SERDES PHY wrapper
 //  *
 //  * @base_address:        Byte address of the WIZ SERDES register block
 //  *                    (e.g. 0x00900000 for SERDES0 on AM243x)
@@ -451,9 +451,9 @@ static int wiz_init(am64x_wiz_t *w)
 //  *
 //  * Returns 0 on success, negative errno on failure.
 //  * Skips hardware re-init if the lane is already enabled (warm boot).
-int am64x_wiz_init(uintptr_t base_address, uint32_t phy_type, uint32_t lane_swap, uint32_t core_ref_clk_hz)
+int am243x_wiz_init(uintptr_t base_address, uint32_t phy_type, uint32_t lane_swap, uint32_t core_ref_clk_hz)
 {
-    am64x_wiz_t *w = &_wiz;
+    am243x_wiz_t *w = &_wiz;
     unsigned int val;
     uint32_t i;
     int already_up = 0;

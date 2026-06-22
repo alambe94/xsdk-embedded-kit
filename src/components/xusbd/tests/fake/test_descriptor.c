@@ -158,6 +158,7 @@ void test_connect_builds_super_speed_bos_and_msos_descriptor(void)
 
     test_device_init(&device_ctx);
     TEST_ASSERT_EQUAL(xRETURN_OK, test_class_register(&device_ctx, &class_ctx, &normal_driver, NULL));
+    class_ctx.ms_compatible_id = "WINUSB";
     TEST_ASSERT_EQUAL(xRETURN_OK, xUSBD_Class_Set_MOS_Properties(&class_ctx, winusb_mos_props));
 
     fake_dcd_get_speed_fake.return_val = USB_SPEED_SUPER;
@@ -188,12 +189,19 @@ void test_connect_builds_super_speed_bos_and_msos_descriptor(void)
     TEST_ASSERT_EQUAL_UINT16(USB_MOS2_SET_HEADER_DESCRIPTOR, set_header->wDescriptorType);
     TEST_ASSERT_EQUAL_UINT16(device_ctx.mos2_length, set_header->wTotalLength);
 
-    USB_MS_OS_20_Subset_Header_Function_t *function_header = (USB_MS_OS_20_Subset_Header_Function_t *)&device_ctx.mos2_descriptor[18];
-    TEST_ASSERT_EQUAL_UINT16(USB_MOS2_SUBSET_HEADER_FUNCTION, function_header->wDescriptorType);
-    TEST_ASSERT_EQUAL_UINT8(class_ctx.first_interface, function_header->bFirstInterface);
-    TEST_ASSERT_GREATER_THAN_UINT16(8U, function_header->wSubsetLength);
-
-    TEST_ASSERT_EQUAL_UINT16(0x0004U, (uint16_t)(device_ctx.mos2_descriptor[28] | ((uint16_t)device_ctx.mos2_descriptor[29] << 8U)));
+    TEST_ASSERT_EQUAL_UINT16(20U, (uint16_t)(device_ctx.mos2_descriptor[10] | ((uint16_t)device_ctx.mos2_descriptor[11] << 8U)));
+    TEST_ASSERT_EQUAL_UINT16(USB_MOS2_FEATURE_COMPATIBLE_ID,
+                             (uint16_t)(device_ctx.mos2_descriptor[12] | ((uint16_t)device_ctx.mos2_descriptor[13] << 8U)));
+    TEST_ASSERT_EQUAL_UINT8('W', device_ctx.mos2_descriptor[14]);
+    TEST_ASSERT_EQUAL_UINT8('I', device_ctx.mos2_descriptor[15]);
+    TEST_ASSERT_EQUAL_UINT8('N', device_ctx.mos2_descriptor[16]);
+    TEST_ASSERT_EQUAL_UINT8('U', device_ctx.mos2_descriptor[17]);
+    TEST_ASSERT_EQUAL_UINT8('S', device_ctx.mos2_descriptor[18]);
+    TEST_ASSERT_EQUAL_UINT8('B', device_ctx.mos2_descriptor[19]);
+    TEST_ASSERT_EQUAL_UINT8(0U, device_ctx.mos2_descriptor[20]);
+    TEST_ASSERT_EQUAL_UINT8(0U, device_ctx.mos2_descriptor[21]);
+    TEST_ASSERT_EQUAL_UINT16(USB_MOS2_FEATURE_REG_PROPERTY,
+                             (uint16_t)(device_ctx.mos2_descriptor[32] | ((uint16_t)device_ctx.mos2_descriptor[33] << 8U)));
 }
 
 // MAIN ////////////////////////////////////////////////////////////////////////

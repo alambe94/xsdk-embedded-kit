@@ -68,30 +68,6 @@ extern "C"
         uint16_t own_address;
     } xI2C_Config_t;
 
-    typedef struct xI2C_Capabilities_t
-    {
-        bool can_async;
-        bool can_dma;
-        bool can_target_mode;
-        bool can_ten_bit_address;
-        bool can_bus_recovery;
-        bool can_message_sequence;
-        bool can_acquire_bus;
-        uint32_t max_clock_hz;
-        uint32_t max_messages;
-    } xI2C_Capabilities_t;
-
-    typedef struct xI2C_Status_t
-    {
-        bool is_initialized;
-        bool is_started;
-        bool is_busy;
-        bool is_bus_acquired;
-        bool has_bus_error;
-        bool has_arbitration_lost;
-        xRETURN_t last_error;
-    } xI2C_Status_t;
-
     typedef enum xI2C_Transaction_Flags_t
     {
         xI2C_TRANSACTION_FLAGS_NONE = 0x00000000U,

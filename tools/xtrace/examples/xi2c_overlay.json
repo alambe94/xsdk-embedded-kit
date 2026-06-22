@@ -1,0 +1,4 @@
+{
+  "_comment": "xI2C v2 event dictionary. Keys are decimal event IDs matching xI2C_TRACE_CODE_* in xi2c_trace.h.",
+  "timestamp_hz": 1000000
+}

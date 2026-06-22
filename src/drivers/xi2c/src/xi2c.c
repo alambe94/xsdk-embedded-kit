@@ -26,6 +26,7 @@
 #include "xassert.h"
 #include "xi2c.h"
 #include "xi2c_log.h"
+#include "xi2c_trace.h"
 
 // MACROS //////////////////////////////////////////////////////////////////////////
 
@@ -77,6 +78,8 @@ xRETURN_t xI2C_Init(xI2C_Context_t *i2c_ctx, const xI2C_Instance_t *instance, co
     i2c_ctx->config = *config;
     i2c_ctx->is_initialized = true;
 
+    xI2C_TRACE_E1(i2c_ctx, xI2C_TRACE_CODE_INIT, config->bitrate_hz);
+
     return xRETURN_OK;
 }
 
@@ -102,6 +105,8 @@ xRETURN_t xI2C_Deinit(xI2C_Context_t *i2c_ctx)
     {
         return status;
     }
+
+    xI2C_TRACE_E0(i2c_ctx, xI2C_TRACE_CODE_DEINIT);
 
     (void)memset(i2c_ctx, 0, sizeof(*i2c_ctx));
 
@@ -132,6 +137,8 @@ xRETURN_t xI2C_Start(xI2C_Context_t *i2c_ctx)
     }
 
     i2c_ctx->is_started = true;
+
+    xI2C_TRACE_E0(i2c_ctx, xI2C_TRACE_CODE_START);
 
     return xRETURN_OK;
 }
@@ -166,43 +173,7 @@ xRETURN_t xI2C_Stop(xI2C_Context_t *i2c_ctx)
 
     i2c_ctx->is_started = false;
 
-    return xRETURN_OK;
-}
-
-xRETURN_t xI2C_Get_Capabilities(const xI2C_Instance_t *instance, xI2C_Capabilities_t *capabilities)
-{
-    if ((instance == NULL) || (capabilities == NULL))
-    {
-        return xRETURN_xERR_xI2C_NULL_POINTER;
-    }
-
-    if ((instance->ops == NULL) || (instance->ops->get_capabilities == NULL))
-    {
-        return xRETURN_xERR_xI2C_UNSUPPORTED;
-    }
-
-    return instance->ops->get_capabilities(instance->driver_ctx, capabilities);
-}
-
-xRETURN_t xI2C_Get_Status(const xI2C_Context_t *i2c_ctx, xI2C_Status_t *status)
-{
-    if ((i2c_ctx == NULL) || (status == NULL))
-    {
-        return xRETURN_xERR_xI2C_NULL_POINTER;
-    }
-
-    if (i2c_ctx->ops != NULL && i2c_ctx->ops->get_status != NULL)
-    {
-        return i2c_ctx->ops->get_status(i2c_ctx->driver_ctx, status);
-    }
-
-    status->is_initialized = i2c_ctx->is_initialized;
-    status->is_started = i2c_ctx->is_started;
-    status->is_busy = i2c_ctx->is_busy;
-    status->is_bus_acquired = i2c_ctx->is_bus_acquired;
-    status->has_bus_error = false;
-    status->has_arbitration_lost = false;
-    status->last_error = i2c_ctx->last_error;
+    xI2C_TRACE_E0(i2c_ctx, xI2C_TRACE_CODE_STOP);
 
     return xRETURN_OK;
 }
@@ -273,10 +244,11 @@ xI2C_Controller_Write(xI2C_Context_t *i2c_ctx, uint16_t device_address, const ui
                                       .flags = xI2C_TRANSACTION_FLAGS_NONE,
                                       .timeout_ms = timeout_ms};
 
+    xI2C_TRACE_E2(i2c_ctx, xI2C_TRACE_CODE_WRITE_START, device_address, tx_length);
     i2c_ctx->is_busy = true;
     xRETURN_t status = i2c_ctx->ops->transfer(i2c_ctx->driver_ctx, &transaction);
     i2c_ctx->is_busy = false;
-    i2c_ctx->last_error = status;
+    xI2C_TRACE_E2(i2c_ctx, (status == xRETURN_OK) ? xI2C_TRACE_CODE_WRITE_DONE : xI2C_TRACE_CODE_ERROR, device_address, status);
 
     return status;
 }
@@ -317,10 +289,11 @@ xI2C_Controller_Read(xI2C_Context_t *i2c_ctx, uint16_t device_address, uint8_t *
                                       .flags = xI2C_TRANSACTION_FLAGS_NONE,
                                       .timeout_ms = timeout_ms};
 
+    xI2C_TRACE_E2(i2c_ctx, xI2C_TRACE_CODE_READ_START, device_address, rx_length);
     i2c_ctx->is_busy = true;
     xRETURN_t status = i2c_ctx->ops->transfer(i2c_ctx->driver_ctx, &transaction);
     i2c_ctx->is_busy = false;
-    i2c_ctx->last_error = status;
+    xI2C_TRACE_E2(i2c_ctx, (status == xRETURN_OK) ? xI2C_TRACE_CODE_READ_DONE : xI2C_TRACE_CODE_ERROR, device_address, status);
 
     return status;
 }
@@ -366,10 +339,11 @@ xRETURN_t xI2C_Controller_Write_Read(xI2C_Context_t *i2c_ctx,
                                       .flags = xI2C_TRANSACTION_FLAGS_REPEATED_START,
                                       .timeout_ms = timeout_ms};
 
+    xI2C_TRACE_E2(i2c_ctx, xI2C_TRACE_CODE_WRITE_READ_START, device_address, tx_length);
     i2c_ctx->is_busy = true;
     xRETURN_t status = i2c_ctx->ops->transfer(i2c_ctx->driver_ctx, &transaction);
     i2c_ctx->is_busy = false;
-    i2c_ctx->last_error = status;
+    xI2C_TRACE_E2(i2c_ctx, (status == xRETURN_OK) ? xI2C_TRACE_CODE_WRITE_READ_DONE : xI2C_TRACE_CODE_ERROR, device_address, status);
 
     return status;
 }
@@ -401,13 +375,14 @@ xRETURN_t xI2C_Controller_Transfer_Async(xI2C_Context_t *i2c_ctx, const xI2C_Tra
         return xRETURN_xERR_xI2C_UNSUPPORTED;
     }
 
+    xI2C_TRACE_E2(i2c_ctx, xI2C_TRACE_CODE_ASYNC_START, transaction->device_address, transaction->tx_length);
     i2c_ctx->is_busy = true;
     xRETURN_t status = i2c_ctx->ops->transfer_async(i2c_ctx->driver_ctx, transaction);
     if (status != xRETURN_OK)
     {
         i2c_ctx->is_busy = false;
+        xI2C_TRACE_E2(i2c_ctx, xI2C_TRACE_CODE_ERROR, transaction->device_address, status);
     }
-    i2c_ctx->last_error = status;
 
     return status;
 }
@@ -442,7 +417,6 @@ xRETURN_t xI2C_Controller_Message_Sequence(xI2C_Context_t *i2c_ctx, const xI2C_M
     i2c_ctx->is_busy = true;
     xRETURN_t status = i2c_ctx->ops->message_sequence(i2c_ctx->driver_ctx, sequence);
     i2c_ctx->is_busy = false;
-    i2c_ctx->last_error = status;
 
     return status;
 }
@@ -480,7 +454,6 @@ xRETURN_t xI2C_Controller_Message_Sequence_Async(xI2C_Context_t *i2c_ctx, const 
     {
         i2c_ctx->is_busy = false;
     }
-    i2c_ctx->last_error = status;
 
     return status;
 }

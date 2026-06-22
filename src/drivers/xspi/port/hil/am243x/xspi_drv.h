@@ -42,7 +42,6 @@ extern "C"
     {
         uint32_t base_addr;
         uint32_t input_clock_hz;
-        xRETURN_t last_error;
         bool is_initialized;
         bool is_started;
         bool is_busy;

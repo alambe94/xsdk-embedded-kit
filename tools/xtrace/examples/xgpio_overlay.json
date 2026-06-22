@@ -1,0 +1,4 @@
+{
+  "_comment": "xGPIO v2 event dictionary. Keys are decimal event IDs matching xGPIO_TRACE_CODE_* in xgpio_trace.h.",
+  "timestamp_hz": 1000000
+}

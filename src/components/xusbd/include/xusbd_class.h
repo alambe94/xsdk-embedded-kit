@@ -155,6 +155,10 @@ extern "C"
         const char *interface_string;
         uint8_t interface_string_index;
         xUSBD_MOS_Property_t *mos_props;
+        // Non-NULL: emit MS OS 2.0 CompatibleID Feature (wType=0x0003) for this
+        // class.  String is at most 8 chars, zero-padded (e.g. "WINUSB").
+        // Required for Windows to auto-install the matching inbox driver.
+        const char *ms_compatible_id;
     };
 
     struct xUSBD_Class_Driver

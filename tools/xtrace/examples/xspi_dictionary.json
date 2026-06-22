@@ -1,0 +1,83 @@
+{
+  "_comment": "xSPI v2 event dictionary. Keys are decimal event IDs matching xSPI_TRACE_CODE_* in xspi_trace.h.",
+  "events": {
+    "224": {
+      "arg_labels": [
+        "default_clock_hz"
+      ],
+      "name": "SPI_INIT",
+      "param_count": 1,
+      "track": "xSPI/Lifecycle",
+      "type": "instant"
+    },
+    "225": {
+      "arg_labels": [
+        "unused"
+      ],
+      "name": "SPI_DEINIT",
+      "param_count": 1,
+      "track": "xSPI/Lifecycle",
+      "type": "instant"
+    },
+    "226": {
+      "arg_labels": [
+        "unused"
+      ],
+      "name": "SPI_START",
+      "param_count": 1,
+      "track": "xSPI/Lifecycle",
+      "type": "instant"
+    },
+    "227": {
+      "arg_labels": [
+        "unused"
+      ],
+      "name": "SPI_STOP",
+      "param_count": 1,
+      "track": "xSPI/Lifecycle",
+      "type": "instant"
+    },
+    "228": {
+      "arg_labels": [
+        "chip_select",
+        "tx_length"
+      ],
+      "name": "SPI_TRANSFER_START",
+      "param_count": 2,
+      "track": "xSPI/Transfer",
+      "type": "begin"
+    },
+    "229": {
+      "arg_labels": [
+        "chip_select",
+        "status"
+      ],
+      "name": "SPI_TRANSFER_DONE",
+      "param_count": 2,
+      "track": "xSPI/Transfer",
+      "type": "end"
+    },
+    "230": {
+      "arg_labels": [
+        "event",
+        "status"
+      ],
+      "name": "SPI_CALLBACK",
+      "param_count": 2,
+      "track": "xSPI/Callback",
+      "type": "instant"
+    },
+    "231": {
+      "arg_labels": [
+        "chip_select",
+        "status"
+      ],
+      "name": "SPI_ERROR",
+      "param_count": 2,
+      "track": "xSPI/Error",
+      "type": "error"
+    }
+  },
+  "timestamp_hz": 1000000,
+  "version": 2
+}

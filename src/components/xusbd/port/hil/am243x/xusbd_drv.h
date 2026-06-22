@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // @file xusbd_drv.h
-// @brief AM64x USB Device Controller Driver
+// @brief AM243x USB Device Controller Driver
 
 #ifndef XUSBD_DRV_H
 #define XUSBD_DRV_H
@@ -51,7 +51,7 @@ extern "C"
         uint16_t MPS;
         uint32_t Remaining_XFER_Length;
         uint32_t Actual_XFER_Length;
-    } xUSBD_AM64x_EP_Handle_t;
+    } xUSBD_AM243x_EP_Handle_t;
 
     typedef struct
     {
@@ -62,26 +62,26 @@ extern "C"
         xUSBD_DCD_Event_Callback_t event_callback;
 
         // Endpoint state
-        xUSBD_AM64x_EP_Handle_t in_ep_handles[xUSBD_DEVICE_MAX_IN_ENDPOINT + 1];
-        xUSBD_AM64x_EP_Handle_t out_ep_handles[xUSBD_DEVICE_MAX_OUT_ENDPOINT + 1];
+        xUSBD_AM243x_EP_Handle_t in_ep_handles[xUSBD_DEVICE_MAX_IN_ENDPOINT + 1];
+        xUSBD_AM243x_EP_Handle_t out_ep_handles[xUSBD_DEVICE_MAX_OUT_ENDPOINT + 1];
 
-    } xUSBD_AM64x_DCD_Context_t;
+    } xUSBD_AM243x_DCD_Context_t;
 
     // VARIABLES ///////////////////////////////////////////////////////////////////
 
-    // Single-instance constraint: the AM64x port driver supports exactly one USB
+    // Single-instance constraint: the AM243x port driver supports exactly one USB
     // device instance (USB0). Both the Ops table and the context are module-level
     // singletons. This is an architectural limit of the Cadence CUSBD callback
     // model, which does not thread a user context pointer through its completion
     // callbacks, making it impossible to demultiplex events across multiple
     // instances without a global lookup. Multi-instance use requires a redesign
     // of the platform port layer.
-    extern xUSBD_DCD_Ops_t xUSBD_AM64x_DCD_Ops;
-    extern xUSBD_AM64x_DCD_Context_t xUSBD_AM64x_DCD_Context;
+    extern xUSBD_DCD_Ops_t xUSBD_AM243x_DCD_Ops;
+    extern xUSBD_AM243x_DCD_Context_t xUSBD_AM243x_DCD_Context;
 
     // FUNCTION PROTOTYPES /////////////////////////////////////////////////////////
 
-    void xUSBD_AM64x_DCD_IRQ_Handler(uint8_t port);
+    void xUSBD_AM243x_DCD_IRQ_Handler(uint8_t port);
 
     // INLINE FUNCTIONS ////////////////////////////////////////////////////////////
 
@@ -91,3 +91,4 @@ extern "C"
 
 #endif // XUSBD_DRV_H
 // EOF /////////////////////////////////////////////////////////////////////////////
+

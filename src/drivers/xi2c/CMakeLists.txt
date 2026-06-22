@@ -8,14 +8,16 @@ target_include_directories(xi2c
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(xi2c PUBLIC xsdk::xutil)
+target_link_libraries(xi2c PUBLIC xsdk::xutil xsdk::xtrace)
 
 if(xSDK_SOC_AM243X)
     target_sources(xi2c PRIVATE
         port/hil/am243x/xi2c_drv.c
     )
-    target_include_directories(xi2c PRIVATE
+    target_include_directories(xi2c PUBLIC
         port/hil/am243x
+    )
+    target_include_directories(xi2c PRIVATE
         ${PROJECT_SOURCE_DIR}/src/third_party/ti/mcupsdk_core/source
         ${PROJECT_SOURCE_DIR}/src/third_party/ti/mcupsdk_core/source/drivers/hw_include
     )

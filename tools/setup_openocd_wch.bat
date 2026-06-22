@@ -12,7 +12,7 @@ setlocal
 ::   tools\setup_openocd_wch.bat --force   re-init (removes and re-clones)
 ::
 :: After setup, connect:
-::   tools\openocd_wch\bin\openocd.exe -f src/port/ch32h417/debug/ch32h417_v5f_wch.cfg
+::   tools\openocd_wch\bin\openocd.exe -f src/port/ch32h417/gdb/ch32h417_v5f_wch.cfg
 
 set "SCRIPT_DIR=%~dp0"
 set "SDK_ROOT=%SCRIPT_DIR%.."
@@ -42,7 +42,7 @@ echo.
 echo Done. WCH OpenOCD installed to tools\openocd_wch\
 echo.
 echo Usage:
-echo   tools\openocd_wch\bin\openocd.exe -f src/port/ch32h417/debug/ch32h417_v5f_wch.cfg
+echo   tools\openocd_wch\bin\openocd.exe -f src/port/ch32h417/gdb/ch32h417_v5f_wch.cfg
 echo.
 echo WCH-LinkE must be in native mode (VID=1A86 PID=8010).
 echo If it shows as 8012 (CMSIS-DAP), long-press MODE button ~3s to switch back.

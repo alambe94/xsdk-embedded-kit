@@ -198,6 +198,34 @@ Default_Handler:
     j Default_Handler
     .size Default_Handler, . - Default_Handler
 
+    /* Stale-trigger skip handler.
+     *
+     * The WCH debug module stores hardware-breakpoint triggers in non-volatile
+     * state that survives resets and GDB sessions.  Trigger CSR writes from
+     * M-mode fail silently on this device.  When a stale trigger fires the
+     * exception is routed to either the NMI slot (cause=2) or the HardFault
+     * slot (cause=3) depending on how the WCH trigger unit reports the cause.
+     * Both slots point here.
+     *
+     * For RAM bring-up the only expected synchronous exception is the stale
+     * trigger at main's entry address.  The handler unconditionally advances
+     * mepc by 4 (skipping the faulting instruction) and returns via mret so
+     * execution continues past the trigger.  A proper production build should
+     * restore the mcause check once trigger CSR writes are confirmed to work.
+     */
+    .global HardFault_Handler
+    .global NMI_Handler
+    .type   HardFault_Handler, @function
+    .type   NMI_Handler, @function
+    .align  2
+HardFault_Handler:
+NMI_Handler:
+    csrr  t0, mepc
+    addi  t0, t0, 4            /* skip the triggering instruction */
+    csrw  mepc, t0
+    mret                       /* resume execution past the stale trigger */
+    .size HardFault_Handler, . - HardFault_Handler
+
     .section .load, "ax", @progbits
     .type _load_base, @function
     .align 1

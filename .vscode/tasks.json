@@ -14,6 +14,177 @@
             "problemMatcher": []
         },
         {
+            "label": "xSDK: build CH32H417 bringup (RISC-V GCC)",
+            "type": "shell",
+            "command": "${workspaceFolder}/xsdk.bat",
+            "args": [
+                "ch32h417-riscv-gcc"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "xSDK: build QEMU R5",
+            "type": "shell",
+            "command": "${workspaceFolder}/xsdk.bat",
+            "args": [
+                "qemu"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "xSDK: run host unit tests",
+            "type": "shell",
+            "command": "${workspaceFolder}/xsdk.bat",
+            "args": [
+                "test"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "xSDK: run full quality check",
+            "type": "shell",
+            "command": "${workspaceFolder}/xsdk.bat",
+            "args": [
+                "check"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "xSDK: run code formatting",
+            "type": "shell",
+            "command": "${workspaceFolder}/xsdk.bat",
+            "args": [
+                "format"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "xSDK: build CH32H417 IRAM (RISC-V GCC RAM)",
+            "type": "shell",
+            "command": "${workspaceFolder}/xsdk.bat",
+            "args": [
+                "ch32h417-riscv-gcc-ram"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "xSDK: OpenOCD CH32H417 WCH-LinkE IRAM",
+            "type": "shell",
+            "command": "${workspaceFolder}/tools/openocd_wch/bin/openocd.exe",
+            "args": [
+                "-f",
+                "${workspaceFolder}/src/port/ch32h417/gdb/ch32h417_v5f_wch_ram.cfg"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "isBackground": true,
+            "problemMatcher": {
+                "pattern": {
+                    "regexp": "^(Info|Warn|Error)\\s*:.*$",
+                    "message": 1
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": "Open On-Chip Debugger",
+                    "endsPattern": "Listening on port 3333"
+                }
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "clear": true
+            }
+        },
+        {
+            "label": "xSDK: CH32H417 IRAM load and go",
+            "type": "shell",
+            "command": "${workspaceFolder}/tools/riscv_gcc/bin/riscv-none-elf-gdb.exe",
+            "args": [
+                "--batch",
+                "-x", "${workspaceFolder}/src/port/ch32h417/gdb/ch32h417_load_and_go.gdb",
+                "${workspaceFolder}/build/ch32h417-riscv-gcc-ram/src/applications/ch32h417_bringup/ch32h417_bringup.elf"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "dependsOn": "xSDK: OpenOCD CH32H417 WCH-LinkE IRAM",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "clear": true
+            }
+        },
+        {
+            "label": "xSDK: CH32H417 IRAM inspect (live snapshot)",
+            "type": "shell",
+            "command": "${workspaceFolder}/tools/riscv_gcc/bin/riscv-none-elf-gdb.exe",
+            "args": [
+                "--batch",
+                "-x", "${workspaceFolder}/src/port/ch32h417/gdb/ch32h417_inspect.gdb",
+                "${workspaceFolder}/build/ch32h417-riscv-gcc-ram/src/applications/ch32h417_bringup/ch32h417_bringup.elf"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "dependsOn": "xSDK: OpenOCD CH32H417 WCH-LinkE IRAM",
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "clear": false
+            }
+        },
+        {
+            "label": "xSDK: CH32H417 IRAM smoke test (WinUSB loopback)",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "${workspaceFolder}/tools/_smoke.py"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": [],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared",
+                "clear": false
+            }
+        },
+        {
+            "label": "xSDK: CH32H417 IRAM build + load",
+            "dependsOn": [
+                "xSDK: build CH32H417 IRAM (RISC-V GCC RAM)",
+                "xSDK: CH32H417 IRAM load and go"
+            ],
+            "dependsOrder": "sequence",
+            "problemMatcher": []
+        },
+        {
             "label": "xSDK: OpenOCD AM243x R5FSS0-0",
             "type": "shell",
             "command": "${workspaceFolder}/tools/openocd/bin/openocd.exe",
@@ -21,7 +192,7 @@
                 "-s",
                 "${workspaceFolder}/tools/openocd/openocd/scripts",
                 "-f",
-                "${workspaceFolder}/tools/gdb/xsdk_openocd_am243x.cfg"
+                "${workspaceFolder}/src/port/am243x/gdb/am243x.cfg"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"

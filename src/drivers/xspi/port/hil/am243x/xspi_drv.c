@@ -54,6 +54,7 @@ static xRETURN_t am243x_init(void *driver_ctx, const xSPI_Config_t *config);
 static xRETURN_t am243x_deinit(void *driver_ctx);
 static xRETURN_t am243x_start(void *driver_ctx);
 static xRETURN_t am243x_stop(void *driver_ctx);
+static xRETURN_t am243x_set_event_callback(void *driver_ctx, xSPI_Driver_Event_Callback_t callback, void *callback_ctx);
 static xRETURN_t am243x_transfer(void *driver_ctx, const xSPI_Device_t *device, const xSPI_Transaction_t *transaction);
 
 // MODULE FUNCTIONS IMPLEMENTATION /////////////////////////////////////////////////
@@ -406,11 +407,17 @@ static xRETURN_t am243x_transfer(void *driver_ctx, const xSPI_Device_t *device, 
     }
 
     port_ctx->is_busy = false;
-    port_ctx->last_error = status;
 
     return status;
 }
 
+static xRETURN_t am243x_set_event_callback(void *driver_ctx, xSPI_Driver_Event_Callback_t callback, void *callback_ctx)
+{
+    (void)driver_ctx;
+    (void)callback;
+    (void)callback_ctx;
+    return xRETURN_OK;
+}
 
 // PUBLIC VARIABLES ////////////////////////////////////////////////////////////////
 
@@ -419,6 +426,7 @@ const xSPI_Driver_Ops_t xSPI_AM243x_Driver_Ops = {
     .deinit = am243x_deinit,
     .start = am243x_start,
     .stop = am243x_stop,
+    .set_event_callback = am243x_set_event_callback,
     .transfer = am243x_transfer,
 };
 

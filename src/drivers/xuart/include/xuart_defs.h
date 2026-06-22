@@ -92,7 +92,7 @@ extern "C"
 
     typedef struct
     {
-        void (*on_event)(xUART_Context_t *uart_ctx, xUART_Event_t event, const xUART_Event_Info_t *event_info);
+        void (*on_event)(xUART_Context_t *uart_ctx, xUART_Event_t event, const xUART_Event_Info_t *event_info, void *user_ctx);
     } xUART_Callbacks_t;
 
     typedef struct
@@ -102,7 +102,6 @@ extern "C"
         xUART_Stop_Bits_t stop_bits;
         xUART_Parity_t parity;
         xUART_Flow_Control_t flow_control;
-        xUART_Callbacks_t callbacks;
     } xUART_Config_t;
 
     typedef struct

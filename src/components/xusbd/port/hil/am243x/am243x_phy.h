@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// @file am64x_phy.h
-// @brief AM64x PHY type constants and MMIO register-map access helpers.
+// @file am243x_phy.h
+// @brief AM243x PHY type constants and MMIO register-map access helpers.
 
-#ifndef AM64X_PHY_H
-#define AM64X_PHY_H
+#ifndef AM243X_PHY_H
+#define AM243X_PHY_H
 
 // INCLUDES ////////////////////////////////////////////////////////////////////
 // COMPILER INCLUDES
@@ -67,9 +67,9 @@ extern "C"
 
     // FUNCTION PROTOTYPES /////////////////////////////////////////////////////////
 
-    int am64x_wiz_init(uintptr_t base_address, uint32_t phy_type, uint32_t lane_swap, uint32_t core_ref_clk_hz);
-    void am64x_torrent_phy_configure(uintptr_t sd_base, int enable_ssc);
-    int am64x_torrent_phy_wait_ready(uintptr_t sd_base, uint32_t timeout_us);
+    int am243x_wiz_init(uintptr_t base_address, uint32_t phy_type, uint32_t lane_swap, uint32_t core_ref_clk_hz);
+    void am243x_torrent_phy_configure(uintptr_t sd_base, int enable_ssc);
+    int am243x_torrent_phy_wait_ready(uintptr_t sd_base, uint32_t timeout_us);
 
     // INLINE FUNCTIONS ////////////////////////////////////////////////////////////
 
@@ -77,5 +77,5 @@ extern "C"
 }
 #endif
 
-#endif // AM64X_PHY_H
+#endif // AM243X_PHY_H
 // EOF /////////////////////////////////////////////////////////////////////////////

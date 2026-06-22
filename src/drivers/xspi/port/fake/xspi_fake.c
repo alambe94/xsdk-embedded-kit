@@ -42,6 +42,7 @@ static xRETURN_t fake_init(void *driver_ctx, const xSPI_Config_t *config);
 static xRETURN_t fake_deinit(void *driver_ctx);
 static xRETURN_t fake_start(void *driver_ctx);
 static xRETURN_t fake_stop(void *driver_ctx);
+static xRETURN_t fake_set_event_callback(void *driver_ctx, xSPI_Driver_Event_Callback_t callback, void *callback_ctx);
 static xRETURN_t fake_transfer(void *driver_ctx, const xSPI_Device_t *device, const xSPI_Transaction_t *transaction);
 
 const xSPI_Driver_Ops_t xSPI_Fake_Driver_Ops = {
@@ -49,6 +50,7 @@ const xSPI_Driver_Ops_t xSPI_Fake_Driver_Ops = {
     fake_deinit,
     fake_start,
     fake_stop,
+    fake_set_event_callback,
     fake_transfer,
 };
 
@@ -198,6 +200,29 @@ static xRETURN_t fake_transfer(void *driver_ctx, const xSPI_Device_t *device, co
 
     fake_record_transfer(fake_ctx, device, transaction);
     fake_copy_transfer_data(transaction);
+
+    return xRETURN_OK;
+}
+
+static xRETURN_t fake_set_event_callback(void *driver_ctx, xSPI_Driver_Event_Callback_t callback, void *callback_ctx)
+{
+    xSPI_Fake_Context_t *fake_ctx;
+
+    if (driver_ctx == NULL)
+    {
+        return xRETURN_xERR_xSPI_NULL_POINTER;
+    }
+
+    fake_ctx = as_fake_context(driver_ctx);
+    fake_ctx->set_event_callback_count++;
+
+    if (fake_ctx->next_set_event_callback_status != xRETURN_OK)
+    {
+        return fake_ctx->next_set_event_callback_status;
+    }
+
+    fake_ctx->registered_callback = callback;
+    fake_ctx->registered_callback_ctx = callback_ctx;
 
     return xRETURN_OK;
 }

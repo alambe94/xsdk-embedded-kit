@@ -44,8 +44,7 @@ extern "C"
         xRETURN_t (*deinit)(void *driver_ctx);
         xRETURN_t (*start)(void *driver_ctx);
         xRETURN_t (*stop)(void *driver_ctx);
-        xRETURN_t (*get_capabilities)(const void *driver_ctx, xI2C_Capabilities_t *capabilities);
-        xRETURN_t (*get_status)(void *driver_ctx, xI2C_Status_t *status);
+
         xRETURN_t (*set_event_callback)(void *driver_ctx, xI2C_Driver_Event_Callback_t callback, void *callback_ctx);
         xRETURN_t (*transfer)(void *driver_ctx, const xI2C_Transaction_t *transaction);
         xRETURN_t (*transfer_async)(void *driver_ctx, const xI2C_Transaction_t *transaction);

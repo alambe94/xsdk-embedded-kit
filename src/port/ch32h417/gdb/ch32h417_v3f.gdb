@@ -2,10 +2,10 @@
 #
 # Usage:
 #   # Terminal 1:
-#   tools\openocd_wch\bin\openocd.exe -f src/port/ch32h417/debug/ch32h417_v3f_wch.cfg
+#   tools\openocd_wch\bin\openocd.exe -f src/port/ch32h417/gdb/ch32h417_v3f_wch.cfg
 #   # Terminal 2:
 #   tools\riscv_gcc\bin\riscv-none-elf-gdb.exe ^
-#     -x src/port/ch32h417/debug/ch32h417_v3f.gdb ^
+#     -x src/port/ch32h417/gdb/ch32h417_v3f.gdb ^
 #     <path-to-v3f-elf>
 #
 # OpenOCD must already be running before invoking GDB.
@@ -22,7 +22,7 @@ flushregs
 
 info registers pc sp ra mstatus mepc mcause
 
-# break main
+# hbreak main
 # break Reset_Handler
 
 echo \nCH32H417 V3F connected. Type 'continue' to run.\n

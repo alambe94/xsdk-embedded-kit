@@ -25,9 +25,12 @@ extern "C"
 #define USB_MOS1_COMPAT_ID_DESC         0x04U
 #define USB_MOS1_EXTENDED_PROPERTY_DESC 0x05U
 
-#define USB_MOS2_SET_HEADER_DESCRIPTOR       0x0000U
-#define USB_MOS2_SUBSET_HEADER_CONFIGURATION 0x0002U
-#define USB_MOS2_SUBSET_HEADER_FUNCTION      0x0003U
+// MS OS 2.0 descriptor set wDescriptorType values (§4.2 of the MS OS 2.0 spec).
+#define USB_MOS2_SET_HEADER_DESCRIPTOR       0x0000U  // Descriptor Set Header
+#define USB_MOS2_SUBSET_HEADER_CONFIGURATION 0x0001U  // Configuration Subset Header
+#define USB_MOS2_SUBSET_HEADER_FUNCTION      0x0002U  // Function Subset Header
+#define USB_MOS2_FEATURE_COMPATIBLE_ID       0x0003U  // Compatible ID Feature
+#define USB_MOS2_FEATURE_REG_PROPERTY        0x0004U  // Registry Property Feature
 
 #pragma pack(push, 1)
 

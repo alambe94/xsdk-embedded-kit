@@ -33,6 +33,19 @@
 
 // VARIABLES //////////////////////////////////////////////////////////////////////
 
+static uint8_t winusb_device_interface_guid_utf16[] = {
+    '{', 0, '8', 0, 'D', 0, '5', 0, 'B', 0, '9', 0, 'B', 0, '7', 0,
+    '9', 0, '-', 0, '1', 0, 'F', 0, '4', 0, '8', 0, '-', 0, '4', 0,
+    'C', 0, '8', 0, 'A', 0, '-', 0, '9', 0, 'E', 0, '2', 0, 'D', 0,
+    '-', 0, '0', 0, 'D', 0, '5', 0, 'A', 0, '8', 0, 'F', 0, '6', 0,
+    'A', 0, '1', 0, '2', 0, '0', 0, '9', 0, '}', 0, 0, 0, 0, 0,
+};
+
+static xUSBD_MOS_Property_t winusb_mos_props[] = {
+    {0x0007U, "DeviceInterfaceGUIDs", winusb_device_interface_guid_utf16, sizeof(winusb_device_interface_guid_utf16)},
+    {0},
+};
+
 // EXTERN VARIABLES ////////////////////////////////////////////////////////////////
 
 // FUNCTION PROTOTYPES /////////////////////////////////////////////////////////////
@@ -58,6 +71,12 @@ static xUSBD_WIN_Callbacks_t *win_callbacks(xUSBD_Class_Context_t *class_ctx)
 static xRETURN_t win_init_instance(xUSBD_Class_Context_t *class_ctx)
 {
     xUSBD_WIN_Context_t *ctx = (xUSBD_WIN_Context_t *)class_ctx;
+
+    // Tell the MS OS 2.0 descriptor builder to emit CompatibleID = "WINUSB" for
+    // this function so Windows automatically loads WinUSB.sys without a .inf file.
+    class_ctx->ms_compatible_id = "WINUSB";
+    class_ctx->mos_props = winusb_mos_props;
+
     xRETURN_t s = xUSBD_Class_Allocate_Interface(class_ctx, &ctx->interface);
     if (s != xRETURN_OK)
     {
@@ -120,16 +139,10 @@ xRETURN_t xUSBD_WIN_Prepare_To_Receive(xUSBD_Class_Context_t *class_ctx, uint8_t
     return xUSBD_Class_DCD_EP_Receive(class_ctx, ctx->out_ep, data, length);
 }
 
-xRETURN_t xUSBD_WIN_Transmit(xUSBD_Class_Context_t *class_ctx, uint8_t *data, uint32_t length)
+xRETURN_t xUSBD_WIN_Transmit(xUSBD_Class_Context_t *class_ctx, uint8_t *data, uint32_t length, bool is_zlp_required)
 {
     xUSBD_WIN_Context_t *ctx = (xUSBD_WIN_Context_t *)class_ctx;
-    uint16_t ep_mps = 0U;
-    xRETURN_t status = xUSBD_Class_Get_EP_MPS(class_ctx, &ep_mps);
-    if (status != xRETURN_OK)
-    {
-        return status;
-    }
-    return xUSBD_Class_DCD_EP_Send(class_ctx, ctx->in_ep, data, length, (ep_mps != 0U) && (length % ep_mps == 0U) && (length > 0U));
+    return xUSBD_Class_DCD_EP_Send(class_ctx, ctx->in_ep, data, length, is_zlp_required);
 }
 
 static xRETURN_t win_data_received(xUSBD_Class_Context_t *class_ctx, uint8_t ep_addr, uint8_t *data, uint32_t length)

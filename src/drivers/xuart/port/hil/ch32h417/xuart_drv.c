@@ -29,6 +29,9 @@
 
 // MACROS //////////////////////////////////////////////////////////////////////////
 
+// Approximate CPU cycles consumed per polling iteration (1 MMIO read + compare + branch).
+#define XUART_CH32_CYCLES_PER_POLL_LOOP 8U
+
 // TYPES ///////////////////////////////////////////////////////////////////////////
 
 // VARIABLES ///////////////////////////////////////////////////////////////////////
@@ -293,8 +296,12 @@ static xRETURN_t ch32_transmit(void *driver_ctx, const uint8_t *buffer, uint32_t
         return xRETURN_xERR_xUART_NULL_POINTER;
     }
 
-    ctx      = as_port_context(driver_ctx);
-    deadline = timeout_ms * 1000U;
+    ctx = as_port_context(driver_ctx);
+
+    uint32_t loops_per_ms = ctx->pclk_hz / (XUART_CH32_CYCLES_PER_POLL_LOOP * 1000U);
+    if (loops_per_ms == 0U) { loops_per_ms = 1U; }
+    deadline = (timeout_ms == 0U) ? (loops_per_ms * 1000U)
+                                  : (uint32_t)((uint64_t)timeout_ms * loops_per_ms);
 
     for (i = 0U; i < length; i++)
     {
@@ -335,8 +342,12 @@ static xRETURN_t ch32_receive(void *driver_ctx, uint8_t *buffer, uint32_t length
         return xRETURN_xERR_xUART_NULL_POINTER;
     }
 
-    ctx      = as_port_context(driver_ctx);
-    deadline = timeout_ms * 1000U;
+    ctx = as_port_context(driver_ctx);
+
+    uint32_t loops_per_ms = ctx->pclk_hz / (XUART_CH32_CYCLES_PER_POLL_LOOP * 1000U);
+    if (loops_per_ms == 0U) { loops_per_ms = 1U; }
+    deadline = (timeout_ms == 0U) ? (loops_per_ms * 1000U)
+                                  : (uint32_t)((uint64_t)timeout_ms * loops_per_ms);
 
     for (i = 0U; i < length; i++)
     {
@@ -469,15 +480,16 @@ void xUART_CH32H417_IRQ_Handler(xUART_CH32H417_Context_t *ctx)
     // PE requires PEIE+PE. Read DATAR to clear both PE and RXNE simultaneously.
     if (((ctlr1 & USART_CTLR1_PEIE) != 0U) && ((statr & USART_STATR_PE) != 0U))
     {
-        (void)ctx->usart->DATAR;
-
-        uint32_t bytes_done = ctx->rx_index;
-        ctx->rx_buffer      = NULL;
-        ctx->rx_length      = 0U;
-        ctx->rx_index       = 0U;
-        ctx->is_rx_busy     = false;
-
-        fire_event(ctx, xUART_EVENT_RX_PARITY, bytes_done, xRETURN_xERR_xUART_PARITY);
+        (void)ctx->usart->DATAR; // must always read to clear the flag
+        if (ctx->is_rx_busy)
+        {
+            uint32_t bytes_done = ctx->rx_index;
+            ctx->rx_buffer      = NULL;
+            ctx->rx_length      = 0U;
+            ctx->rx_index       = 0U;
+            ctx->is_rx_busy     = false;
+            fire_event(ctx, xUART_EVENT_RX_PARITY, bytes_done, xRETURN_xERR_xUART_PARITY);
+        }
         return;
     }
 
@@ -485,15 +497,16 @@ void xUART_CH32H417_IRQ_Handler(xUART_CH32H417_Context_t *ctx)
     // FE requires EIE+FE. Read DATAR to clear FE (it is sticky until DATAR is read).
     if (((ctlr3 & USART_CTLR3_EIE) != 0U) && ((statr & USART_STATR_FE) != 0U))
     {
-        (void)ctx->usart->DATAR;
-
-        uint32_t bytes_done = ctx->rx_index;
-        ctx->rx_buffer      = NULL;
-        ctx->rx_length      = 0U;
-        ctx->rx_index       = 0U;
-        ctx->is_rx_busy     = false;
-
-        fire_event(ctx, xUART_EVENT_RX_FRAMING, bytes_done, xRETURN_xERR_xUART_FRAMING);
+        (void)ctx->usart->DATAR; // must always read to clear the flag
+        if (ctx->is_rx_busy)
+        {
+            uint32_t bytes_done = ctx->rx_index;
+            ctx->rx_buffer      = NULL;
+            ctx->rx_length      = 0U;
+            ctx->rx_index       = 0U;
+            ctx->is_rx_busy     = false;
+            fire_event(ctx, xUART_EVENT_RX_FRAMING, bytes_done, xRETURN_xERR_xUART_FRAMING);
+        }
         return;
     }
 
@@ -501,15 +514,16 @@ void xUART_CH32H417_IRQ_Handler(xUART_CH32H417_Context_t *ctx)
     // ORE_RX: set when RXNEIE is active and an overrun occurs. Clear by reading DATAR.
     if (((ctlr1 & USART_CTLR1_RXNEIE) != 0U) && ((statr & USART_STATR_ORE) != 0U))
     {
-        (void)ctx->usart->DATAR;
-
-        uint32_t bytes_done = ctx->rx_index;
-        ctx->rx_buffer      = NULL;
-        ctx->rx_length      = 0U;
-        ctx->rx_index       = 0U;
-        ctx->is_rx_busy     = false;
-
-        fire_event(ctx, xUART_EVENT_RX_OVERRUN, bytes_done, xRETURN_xERR_xUART_OVERRUN);
+        (void)ctx->usart->DATAR; // must always read to clear the flag
+        if (ctx->is_rx_busy)
+        {
+            uint32_t bytes_done = ctx->rx_index;
+            ctx->rx_buffer      = NULL;
+            ctx->rx_length      = 0U;
+            ctx->rx_index       = 0U;
+            ctx->is_rx_busy     = false;
+            fire_event(ctx, xUART_EVENT_RX_OVERRUN, bytes_done, xRETURN_xERR_xUART_OVERRUN);
+        }
         return;
     }
 

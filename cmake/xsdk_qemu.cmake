@@ -63,7 +63,7 @@ function(xsdk_add_qemu_test)
     set(_PORT_DIR "${_QEMU_PORT_DIR}")
 
     add_executable(${ARG_TARGET}
-        "${_PORT_DIR}/startup.S"
+        "${_PORT_DIR}/startup/startup.S"
         ${ARG_SOURCES}
     )
 
@@ -77,7 +77,7 @@ function(xsdk_add_qemu_test)
     target_link_libraries(${ARG_TARGET} PRIVATE ${ARG_LIBS})
 
     target_link_options(${ARG_TARGET} PRIVATE
-        -T "${_PORT_DIR}/linker.ld"
+        -T "${_PORT_DIR}/linkers/linker.ld"
         -nostartfiles
         --specs=nosys.specs
     )

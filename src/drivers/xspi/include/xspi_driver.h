@@ -36,12 +36,15 @@ extern "C"
 
     // TYPES ///////////////////////////////////////////////////////////////////////////
 
+    typedef void (*xSPI_Driver_Event_Callback_t)(void *callback_ctx, xSPI_Event_t event, const xSPI_Event_Info_t *event_info);
+
     struct xSPI_Driver_Ops_t
     {
         xRETURN_t (*init)(void *driver_ctx, const xSPI_Config_t *config);
         xRETURN_t (*deinit)(void *driver_ctx);
         xRETURN_t (*start)(void *driver_ctx);
         xRETURN_t (*stop)(void *driver_ctx);
+        xRETURN_t (*set_event_callback)(void *driver_ctx, xSPI_Driver_Event_Callback_t callback, void *callback_ctx);
         xRETURN_t (*transfer)(void *driver_ctx, const xSPI_Device_t *device, const xSPI_Transaction_t *transaction);
     };
 

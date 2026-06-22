@@ -320,9 +320,9 @@ xRETURN_t xUSBD_Init(xUSBD_Device_Context_t *device_ctx, const xUSBD_Init_Config
     descriptor->bLength = 18;
     descriptor->bDescriptorType = USB_DESC_TYPE_DEVICE;
     descriptor->bcdUSB = xCPU_TO_LE16(bcd_usb);
-    descriptor->bDeviceClass = USB_CLASS_IAD_DEVICE;
-    descriptor->bDeviceSubClass = USB_IAD_DEVICE_SUBCLASS;
-    descriptor->bDeviceProtocol = USB_IAD_DEVICE_PROTOCOL;
+    descriptor->bDeviceClass = 0x00U;
+    descriptor->bDeviceSubClass = 0x00U;
+    descriptor->bDeviceProtocol = 0x00U;
     descriptor->bMaxPacketSize0 = (config->speed == USB_SPEED_SUPER) ? 9 : 64;
     descriptor->idVendor = xCPU_TO_LE16(config->vendor_id);
     descriptor->idProduct = xCPU_TO_LE16(config->product_id);
@@ -336,9 +336,9 @@ xRETURN_t xUSBD_Init(xUSBD_Device_Context_t *device_ctx, const xUSBD_Init_Config
     q_descriptor->bLength = 10;
     q_descriptor->bDescriptorType = USB_DESC_TYPE_QUALIFIER;
     q_descriptor->bcdUSB = xCPU_TO_LE16(0x0200);
-    q_descriptor->bDeviceClass = USB_CLASS_IAD_DEVICE;
-    q_descriptor->bDeviceSubClass = USB_IAD_DEVICE_SUBCLASS;
-    q_descriptor->bDeviceProtocol = USB_IAD_DEVICE_PROTOCOL;
+    q_descriptor->bDeviceClass = 0x00U;
+    q_descriptor->bDeviceSubClass = 0x00U;
+    q_descriptor->bDeviceProtocol = 0x00U;
     q_descriptor->bMaxPacketSize0 = 64;
     q_descriptor->bNumConfigurations = 0x01;
     q_descriptor->bReserved = 0x00;

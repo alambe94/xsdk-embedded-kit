@@ -270,11 +270,12 @@ void test_win_transmit_calls_ep_send(void)
 
     uint8_t buf[4] = {0x01, 0x02, 0x03, 0x04};
     RESET_FAKE(fake_dcd_ep_send);
-    (void)xUSBD_WIN_Transmit(&g_win.class_ctx, buf, sizeof(buf));
+    (void)xUSBD_WIN_Transmit(&g_win.class_ctx, buf, sizeof(buf), false);
 
     TEST_ASSERT_EQUAL_UINT32(1U, fake_dcd_ep_send_fake.call_count);
     TEST_ASSERT_EQUAL_UINT8(WIN_IN_EP, fake_dcd_ep_send_fake.arg1_val);
     TEST_ASSERT_EQUAL_UINT32(sizeof(buf), fake_dcd_ep_send_fake.arg3_val);
+    TEST_ASSERT_EQUAL_UINT32(0U, (uint32_t)fake_dcd_ep_send_fake.arg4_val);
 }
 
 void test_win_transmit_zlp_on_full_packet(void)
@@ -283,15 +284,14 @@ void test_win_transmit_zlp_on_full_packet(void)
     (void)test_device_start(&g_device);
     dcd_fire_event(&g_device, USB_DCD_CONNECT_RECEIVED, 0U, NULL, 0U);
 
-    // ep_mps for HS bulk = 512. Send exactly 512 bytes -> ZLP required.
     static uint8_t buf[512];
     memset(buf, 0xAAU, sizeof(buf));
 
     RESET_FAKE(fake_dcd_ep_send);
-    (void)xUSBD_WIN_Transmit(&g_win.class_ctx, buf, sizeof(buf));
+    // Caller explicitly requests a ZLP (e.g. variable-length stream protocol).
+    (void)xUSBD_WIN_Transmit(&g_win.class_ctx, buf, sizeof(buf), true);
 
     TEST_ASSERT_EQUAL_UINT32(1U, fake_dcd_ep_send_fake.call_count);
-    // arg4 = send_zlp; should be non-zero (true)
     TEST_ASSERT_NOT_EQUAL(0U, (uint32_t)fake_dcd_ep_send_fake.arg4_val);
 }
 

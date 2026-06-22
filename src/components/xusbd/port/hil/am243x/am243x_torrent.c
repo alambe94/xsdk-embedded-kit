@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// @file am64x_torrent.c
-// @brief AM64x Torrent SERDES PHY driver implementation.
+// @file am243x_torrent.c
+// @brief AM243x Torrent SERDES PHY driver implementation.
 
 // INCLUDES ////////////////////////////////////////////////////////////////////////
 // COMPILER INCLUDES
@@ -24,7 +24,7 @@
 // SYSTEM INCLUDES
 
 // MODULE INCLUDES
-#include "am64x_phy.h"
+#include "am243x_phy.h"
 
 // MACROS /////////////////////////////////////////////////////////////////////////
 // ------------------------------------------------------------------
@@ -157,7 +157,7 @@
 // TYPES //////////////////////////////////////////////////////////////////////////
 // ------------------------------------------------------------------
 // Register tables - USB3 single-link, 100 MHz with optional internal SSC
-// (Tables selected by J7200/AM64x variant for TYPE_USB + TYPE_NONE)
+// (Tables selected by J7200/AM243x variant for TYPE_USB + TYPE_NONE)
 // ------------------------------------------------------------------
 
 typedef struct
@@ -325,13 +325,13 @@ static int poll_bit(uintptr_t base, uint16_t reg_index, uint16_t mask, uint16_t 
 // ------------------------------------------------------------------
 
 // *
-//  * am64x_torrent_phy_configure() - Write Torrent PHY register tables for USB3
+//  * am243x_torrent_phy_configure() - Write Torrent PHY register tables for USB3
 //  *
 //  * Must be called BEFORE the WIZ resets are deasserted (phy_reset_n, p_enable).
 //  * Matches cdns_torrent_phy_init() in the Linux driver.
 //  *
 //  * @enable_ssc: Enable internal spread spectrum clocking (SSC)
-void am64x_torrent_phy_configure(uintptr_t sd_base, int enable_ssc)
+void am243x_torrent_phy_configure(uintptr_t sd_base, int enable_ssc)
 {
     uintptr_t cmn = CMN_BASE(sd_base);
     uintptr_t tx0 = TX0_BASE(sd_base);
@@ -368,13 +368,13 @@ void am64x_torrent_phy_configure(uintptr_t sd_base, int enable_ssc)
 }
 
 // *
-//  * am64x_torrent_phy_wait_ready() - Poll for Torrent PHY ready after WIZ reset deassert
+//  * am243x_torrent_phy_wait_ready() - Poll for Torrent PHY ready after WIZ reset deassert
 //  *
 //  * Must be called AFTER phy_reset_n=1 and p_enable=P_ENABLE_FORCE.
 //  * Matches cdns_torrent_phy_on() polling in the Linux driver.
 //  *
 //  * Returns 0 on success, -1 on timeout.
-int am64x_torrent_phy_wait_ready(uintptr_t sd_base, uint32_t timeout_us)
+int am243x_torrent_phy_wait_ready(uintptr_t sd_base, uint32_t timeout_us)
 {
     uintptr_t pma_cmn = PMA_CMN_BASE(sd_base);
     uintptr_t pcs_ln0 = PCS_LN0_BASE(sd_base);

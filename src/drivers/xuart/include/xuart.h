@@ -45,6 +45,8 @@ extern "C"
         uint8_t port;
 
         xUART_Config_t config;
+        xUART_Callbacks_t callbacks;
+        void *user_ctx;
 
         bool is_initialized;
         bool is_started;
@@ -84,6 +86,8 @@ extern "C"
     xRETURN_t xUART_Start(xUART_Context_t *uart_ctx, const xUART_Start_Config_t *start_config);
 
     xRETURN_t xUART_Stop(xUART_Context_t *uart_ctx);
+
+    xRETURN_t xUART_Set_Callback(xUART_Context_t *uart_ctx, const xUART_Callbacks_t *callbacks, void *user_ctx);
 
     xRETURN_t xUART_Transmit(xUART_Context_t *uart_ctx, const uint8_t *buffer, uint32_t length, uint32_t timeout_ms);
 

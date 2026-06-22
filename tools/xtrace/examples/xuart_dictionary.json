@@ -1,0 +1,198 @@
+{
+  "_comment": "xUART v2 event dictionary. Keys are decimal event IDs matching xUART_TRACE_CODE_* in xuart_trace.h.",
+  "events": {
+    "160": {
+      "arg_labels": [
+        "baud_rate"
+      ],
+      "name": "INIT",
+      "param_count": 1,
+      "track": "xUART/Lifecycle",
+      "type": "instant"
+    },
+    "161": {
+      "arg_labels": [
+        "port"
+      ],
+      "name": "DEINIT",
+      "param_count": 1,
+      "track": "xUART/Lifecycle",
+      "type": "instant"
+    },
+    "162": {
+      "arg_labels": [
+        "port"
+      ],
+      "name": "START",
+      "param_count": 1,
+      "track": "xUART/Lifecycle",
+      "type": "instant"
+    },
+    "163": {
+      "arg_labels": [
+        "port"
+      ],
+      "name": "STOP",
+      "param_count": 1,
+      "track": "xUART/Lifecycle",
+      "type": "instant"
+    },
+    "164": {
+      "arg_labels": [
+        "port",
+        "length"
+      ],
+      "name": "TX_START",
+      "param_count": 2,
+      "track": "xUART/TX",
+      "type": "begin"
+    },
+    "165": {
+      "arg_labels": [
+        "port",
+        "status"
+      ],
+      "name": "TX_DONE",
+      "param_count": 2,
+      "track": "xUART/TX",
+      "type": "end"
+    },
+    "166": {
+      "arg_labels": [
+        "port",
+        "length"
+      ],
+      "name": "RX_START",
+      "param_count": 2,
+      "track": "xUART/RX",
+      "type": "begin"
+    },
+    "167": {
+      "arg_labels": [
+        "port",
+        "status"
+      ],
+      "name": "RX_DONE",
+      "param_count": 2,
+      "track": "xUART/RX",
+      "type": "end"
+    },
+    "168": {
+      "arg_labels": [
+        "port",
+        "bytes_transferred"
+      ],
+      "name": "TX_COMPLETE",
+      "param_count": 2,
+      "track": "xUART/TX",
+      "type": "end"
+    },
+    "169": {
+      "arg_labels": [
+        "port",
+        "bytes_transferred"
+      ],
+      "name": "TX_ABORTED",
+      "param_count": 2,
+      "track": "xUART/TX",
+      "type": "end"
+    },
+    "170": {
+      "arg_labels": [
+        "port",
+        "bytes_transferred"
+      ],
+      "name": "TX_TIMEOUT",
+      "param_count": 2,
+      "track": "xUART/TX",
+      "type": "end"
+    },
+    "171": {
+      "arg_labels": [
+        "port",
+        "bytes_transferred"
+      ],
+      "name": "RX_COMPLETE",
+      "param_count": 2,
+      "track": "xUART/RX",
+      "type": "end"
+    },
+    "172": {
+      "arg_labels": [
+        "port",
+        "bytes_transferred"
+      ],
+      "name": "RX_ABORTED",
+      "param_count": 2,
+      "track": "xUART/RX",
+      "type": "end"
+    },
+    "173": {
+      "arg_labels": [
+        "port",
+        "bytes_transferred"
+      ],
+      "name": "RX_TIMEOUT",
+      "param_count": 2,
+      "track": "xUART/RX",
+      "type": "end"
+    },
+    "174": {
+      "arg_labels": [
+        "port"
+      ],
+      "name": "RX_OVERRUN",
+      "param_count": 1,
+      "track": "xUART/RX",
+      "type": "error"
+    },
+    "175": {
+      "arg_labels": [
+        "port"
+      ],
+      "name": "RX_FRAMING",
+      "param_count": 1,
+      "track": "xUART/RX",
+      "type": "error"
+    },
+    "176": {
+      "arg_labels": [
+        "port"
+      ],
+      "name": "RX_PARITY",
+      "param_count": 1,
+      "track": "xUART/RX",
+      "type": "error"
+    },
+    "177": {
+      "arg_labels": [
+        "port"
+      ],
+      "name": "ABORT_TX",
+      "param_count": 1,
+      "track": "xUART/TX",
+      "type": "instant"
+    },
+    "178": {
+      "arg_labels": [
+        "port"
+      ],
+      "name": "ABORT_RX",
+      "param_count": 1,
+      "track": "xUART/RX",
+      "type": "instant"
+    },
+    "179": {
+      "arg_labels": [
+        "port",
+        "status"
+      ],
+      "name": "ERROR",
+      "param_count": 2,
+      "track": "xUART/Error",
+      "type": "error"
+    }
+  },
+  "timestamp_hz": 1000000,
+  "version": 2
+}

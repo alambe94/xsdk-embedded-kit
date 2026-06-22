@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // @file xusbh_drv.h
-// @brief AM64x USB Host Controller Driver port boundary.
+// @brief AM243x USB Host Controller Driver port boundary.
 
 #ifndef XUSBH_DRV_H
 #define XUSBH_DRV_H
@@ -34,13 +34,13 @@ extern "C"
 #endif
 
     // MACROS //////////////////////////////////////////////////////////////////////
-#define xUSBH_AM64X_HCD_MAX_PORTS     1U
-#define xUSBH_AM64X_HCD_MAX_INSTANCE  1U
-#define xUSBH_AM64X_HCD_USB0_PORT     0U
-#define xUSBH_AM64X_HCD_USB0_INSTANCE 0U
+#define xUSBH_AM243X_HCD_MAX_PORTS     1U
+#define xUSBH_AM243X_HCD_MAX_INSTANCE  1U
+#define xUSBH_AM243X_HCD_USB0_PORT     0U
+#define xUSBH_AM243X_HCD_USB0_INSTANCE 0U
 
     // TYPES ///////////////////////////////////////////////////////////////////////
-    typedef struct xUSBH_AM64x_HCD_Context_t
+    typedef struct xUSBH_AM243x_HCD_Context_t
     {
         void *host_ctx;
         void *driver_object;
@@ -55,14 +55,14 @@ extern "C"
         bool are_interrupts_enabled;
         bool is_port_powered;
         bool is_port_connected;
-    } xUSBH_AM64x_HCD_Context_t;
+    } xUSBH_AM243x_HCD_Context_t;
 
     // VARIABLES ///////////////////////////////////////////////////////////////////
 
-    // AM64x host-port limitation:
+    // AM243x host-port limitation:
     // This port represents USB0 only. Vendor Cadence USBSSP/xHCI types are kept
     // out of this header and are bound inside xusbh_drv.c only when
-    // xUSBH_AM64X_HCD_ENABLE_MCU_PLUS_SDK is defined. Without that build flag,
+    // xUSBH_AM243X_HCD_ENABLE_MCU_PLUS_SDK is defined. Without that build flag,
     // the Ops table remains a portable scaffold and hardware operations report
     // xRETURN_xERR_xUSBH_UNSUPPORTED_OPERATION.
     //
@@ -73,15 +73,15 @@ extern "C"
     // one root port, USB0 role selection performed by the board layer, and
     // controller-visible transfer buffers supplied by the caller/class layer.
     // SuperSpeed PHY/WIZ/Torrent bring-up is compiled in only when
-    // xUSBH_AM64X_HCD_ENABLE_SUPER_SPEED is set.
-    extern const xUSBH_HCD_Ops_t xUSBH_AM64x_HCD_Ops;
-    extern xUSBH_AM64x_HCD_Context_t xUSBH_AM64x_HCD_Context;
+    // xUSBH_AM243X_HCD_ENABLE_SUPER_SPEED is set.
+    extern const xUSBH_HCD_Ops_t xUSBH_AM243x_HCD_Ops;
+    extern xUSBH_AM243x_HCD_Context_t xUSBH_AM243x_HCD_Context;
 
     // INLINE FUNCTIONS ////////////////////////////////////////////////////////////
 
     // FUNCTION PROTOTYPES /////////////////////////////////////////////////////////
 
-    void xUSBH_AM64x_HCD_IRQ_Handler(uint8_t port);
+    void xUSBH_AM243x_HCD_IRQ_Handler(uint8_t port);
 
 #ifdef __cplusplus
 }
@@ -89,3 +89,4 @@ extern "C"
 
 #endif // XUSBH_DRV_H
 // EOF /////////////////////////////////////////////////////////////////////////////
+

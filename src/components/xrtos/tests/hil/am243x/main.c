@@ -45,6 +45,7 @@
 #include "xuart.h"
 #include "xuart_drv.h"
 #include "xtimer.h"
+#include "xtimer_drv.h"
 
 // -- Board constants --------------------------------------------------------
 
@@ -87,6 +88,9 @@ static volatile bool s_workers_stop;
 static xUART_Context_t s_uart_ctx;
 static xUART_AM243x_Context_t s_am243x_uart_ctx;
 
+static xTIMER_Context_t s_timer_ctx;
+static xTIMER_AM243x_Context_t s_am243x_timer_ctx;
+
 // -- Helper functions -------------------------------------------------------
 
 static void uart_write(const char *s)
@@ -111,7 +115,7 @@ static void uart_write(const char *s)
 static void timer_isr(void *args)
 {
     (void)args;
-    xTIMER_Clear_IRQ(TIMER8_BASE);
+    xTIMER_Clear_IRQ(&s_timer_ctx);
     xRTOS_Port_AM243x_Tick_ISR(NULL);
 }
 
@@ -198,8 +202,7 @@ int main(void)
                                .data_bits = xUART_DATA_BITS_8,
                                .stop_bits = xUART_STOP_BITS_1,
                                .parity = xUART_PARITY_NONE,
-                               .flow_control = xUART_FLOW_CONTROL_NONE,
-                               .callbacks.on_event = NULL};
+                               .flow_control = xUART_FLOW_CONTROL_NONE};
 
     if (xUART_Init(&s_uart_ctx, &uart_cfg) != xRETURN_OK)
     {
@@ -223,10 +226,19 @@ int main(void)
     *(volatile uint32_t *)TIMER8_CLK_SRC_MUX_ADDR = TIMER8_CLK_SRC_HFOSC0;
     xsdk_soc_mmr_lock_main(TIMER8_CLK_MUX_PARTITION);
 
-    xTIMER_Init_Periodic(TIMER8_BASE, TICK_PERIOD_US, TIMER8_CLK_HZ);
+    s_am243x_timer_ctx.base_addr = TIMER8_BASE;
+    xTIMER_Config_t timer_cfg = {.period_us = TICK_PERIOD_US, .module_clk_hz = TIMER8_CLK_HZ};
+    xTIMER_Instance_t timer_inst = {.ops = &xTIMER_AM243x_Driver_Ops, .driver_ctx = &s_am243x_timer_ctx};
+
+    if (xTIMER_Init(&s_timer_ctx, &timer_inst, &timer_cfg) != xRETURN_OK)
+    {
+        for (;;)
+            ;
+    }
+
     xRTOS_Port_AM243x_Register_IRQ(TIMER8_IRQ, timer_isr, NULL, 15U, false);
     xRTOS_Port_AM243x_Enable_IRQ(TIMER8_IRQ);
-    xTIMER_Start(TIMER8_BASE);
+    xTIMER_Start(&s_timer_ctx);
 
     xRTOS_Kernel_Init(&s_kernel, &xrtos_arm_r5_port_ops);
 

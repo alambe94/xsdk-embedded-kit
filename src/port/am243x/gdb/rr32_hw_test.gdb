@@ -4,11 +4,11 @@
 #
 #   Step 1 - Start OpenOCD in a separate terminal:
 #     tools\openocd\bin\openocd.exe -s tools\openocd\scripts \
-#         -f src/port/am243x/debug/am243x.cfg
+#         -f src/port/am243x/gdb/am243x.cfg
 #
 #   Step 2 - Run this script:
 #     arm-none-eabi-gdb build\am243x-ticlang\src\applications\am243x_rr32\am243x_rr32.out \
-#         --batch -x src/port/am243x/debug/rr32_hw_test.gdb
+#         --batch -x src/port/am243x/gdb/rr32_hw_test.gdb
 #
 # Exit codes:
 #   0 = PASS (g_rr32_done == 1)

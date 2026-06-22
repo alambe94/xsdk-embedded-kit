@@ -44,13 +44,12 @@ extern "C"
     typedef struct
     {
         uint8_t *Data;
-        uint8_t *Current_Data;
         uint8_t EP_Type;
-        uint8_t Transfers_Per_Microframe;
-        uint8_t Send_ZLP;
+        bool Is_Active;
+        bool Send_ZLP;
+        bool Chain_Primed;
         uint16_t MPS;
-        uint32_t Remaining_XFER_Length;
-        uint32_t Actual_XFER_Length;
+        uint32_t Transfer_Length;
     } xUSBD_CH32H417_EP_Handle_t;
 
     typedef struct
@@ -60,6 +59,7 @@ extern "C"
         USB_Speed_t speed;
         bool is_hardware_initialized;
         bool is_connected;
+        bool warm_reset_active;
         xUSBD_DCD_Event_Callback_t event_callback;
 
         // Endpoint state (0 is Control, 1-7 are standard endpoints)
@@ -79,6 +79,7 @@ extern "C"
 
 #define XUSBD_CH32H417_IRQ_ATTR __attribute__((interrupt("machine")))
 
+    void xUSBD_CH32H417_DCD_Poll(void);
     void USBSS_IRQHandler(void) XUSBD_CH32H417_IRQ_ATTR;
     void USBSS_LINK_IRQHandler(void) XUSBD_CH32H417_IRQ_ATTR;
 

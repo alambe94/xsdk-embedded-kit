@@ -25,6 +25,7 @@
 // MODULE INCLUDES
 #include "xassert.h"
 #include "xspi.h"
+#include "xspi_trace.h"
 
 // MACROS //////////////////////////////////////////////////////////////////////////
 
@@ -35,6 +36,7 @@
 // EXTERN VARIABLES ////////////////////////////////////////////////////////////////
 
 // FUNCTION PROTOTYPES /////////////////////////////////////////////////////////////
+static void core_event_sink(void *callback_ctx, xSPI_Event_t event, const xSPI_Event_Info_t *event_info);
 
 // PUBLIC FUNCTIONS IMPLEMENTATION /////////////////////////////////////////////////
 
@@ -76,7 +78,17 @@ xRETURN_t xSPI_Init(xSPI_Context_t *context, const xSPI_Instance_t *instance, co
     context->is_initialized = true;
     context->is_started = false;
     context->is_busy = false;
-    context->last_error = xRETURN_OK;
+
+    if (instance->ops->set_event_callback != NULL)
+    {
+        xRETURN_t cb_status = instance->ops->set_event_callback(instance->driver_ctx, core_event_sink, context);
+        if (cb_status != xRETURN_OK)
+        {
+            return cb_status;
+        }
+    }
+
+    xSPI_TRACE_E1(context, xSPI_TRACE_CODE_INIT, config->default_clock_hz);
 
     return xRETURN_OK;
 }
@@ -103,9 +115,10 @@ xRETURN_t xSPI_Deinit(xSPI_Context_t *context)
     xRETURN_t status = context->ops->deinit(context->driver_ctx);
     if (status != xRETURN_OK)
     {
-        context->last_error = status;
         return status;
     }
+
+    xSPI_TRACE_E0(context, xSPI_TRACE_CODE_DEINIT);
 
     (void)memset(context, 0, sizeof(*context));
 
@@ -132,11 +145,11 @@ xRETURN_t xSPI_Start(xSPI_Context_t *context)
     }
 
     xRETURN_t status = context->ops->start(context->driver_ctx);
-    context->last_error = status;
 
     if (status == xRETURN_OK)
     {
         context->is_started = true;
+        xSPI_TRACE_E0(context, xSPI_TRACE_CODE_START);
     }
 
     return status;
@@ -167,11 +180,11 @@ xRETURN_t xSPI_Stop(xSPI_Context_t *context)
     }
 
     xRETURN_t status = context->ops->stop(context->driver_ctx);
-    context->last_error = status;
 
     if (status == xRETURN_OK)
     {
         context->is_started = false;
+        xSPI_TRACE_E0(context, xSPI_TRACE_CODE_STOP);
     }
 
     return status;
@@ -211,15 +224,64 @@ xRETURN_t xSPI_Transfer(const xSPI_Device_t *device, const xSPI_Transaction_t *t
         return xRETURN_xERR_xSPI_BUSY;
     }
 
+    xSPI_TRACE_E2(context, xSPI_TRACE_CODE_TRANSFER_START, device->chip_select, transaction->length);
+
     context->is_busy = true;
-    context->last_error = xRETURN_OK;
 
     xRETURN_t status = context->ops->transfer(context->driver_ctx, device, transaction);
 
     context->is_busy = false;
-    context->last_error = status;
+
+    xSPI_TRACE_E2(context, (status == xRETURN_OK) ? xSPI_TRACE_CODE_TRANSFER_DONE : xSPI_TRACE_CODE_ERROR, device->chip_select, status);
 
     return status;
+}
+
+xRETURN_t xSPI_Set_Callback(xSPI_Context_t *context, const xSPI_Callbacks_t *callbacks, void *user_ctx)
+{
+    xASSERT(context != NULL, "xSPI context is NULL");
+
+    if (context == NULL)
+    {
+        return xRETURN_xERR_xSPI_NULL_POINTER;
+    }
+
+    if (context->is_initialized == false)
+    {
+        return xRETURN_xERR_xSPI_NOT_INITIALIZED;
+    }
+
+    if (context->is_busy == true)
+    {
+        return xRETURN_xERR_xSPI_BUSY;
+    }
+
+    if (callbacks != NULL)
+    {
+        context->callbacks = *callbacks;
+    }
+    else
+    {
+        (void)memset(&context->callbacks, 0, sizeof(context->callbacks));
+    }
+    context->user_ctx = user_ctx;
+
+    return xRETURN_OK;
+}
+
+static void core_event_sink(void *callback_ctx, xSPI_Event_t event, const xSPI_Event_Info_t *event_info)
+{
+    xSPI_Context_t *spi_ctx = (xSPI_Context_t *)callback_ctx;
+
+    if (spi_ctx == NULL)
+    {
+        return;
+    }
+
+    if (spi_ctx->callbacks.on_event != NULL)
+    {
+        spi_ctx->callbacks.on_event(spi_ctx, event, event_info, spi_ctx->user_ctx);
+    }
 }
 
 // EOF /////////////////////////////////////////////////////////////////////////////

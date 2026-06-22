@@ -47,6 +47,7 @@ typedef struct
     xRETURN_t next_start_status;
     xRETURN_t next_stop_status;
     xRETURN_t next_transfer_status;
+    xRETURN_t next_set_event_callback_status;
 
     const xSPI_Device_t *active_device;
     const xSPI_Transaction_t *active_transaction;
@@ -61,6 +62,10 @@ typedef struct
     uint32_t start_count;
     uint32_t stop_count;
     uint32_t transfer_count;
+    uint32_t set_event_callback_count;
+
+    xSPI_Driver_Event_Callback_t registered_callback;
+    void *registered_callback_ctx;
 
     bool is_initialized;
     bool is_started;

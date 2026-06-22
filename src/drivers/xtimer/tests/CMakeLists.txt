@@ -1,0 +1,9 @@
+xsdk_add_test(xtimer_core_test
+    SOURCES
+        fake/test_xtimer_core.c
+        ../port/fake/xtimer_fake.c
+    LIBS
+        xsdk::xtimer
+    INCLUDES
+        ${CMAKE_CURRENT_SOURCE_DIR}/../port/fake
+)

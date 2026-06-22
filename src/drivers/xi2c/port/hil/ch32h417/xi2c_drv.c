@@ -30,6 +30,9 @@
 
 // MACROS //////////////////////////////////////////////////////////////////////////
 
+// Approximate CPU cycles consumed per polling iteration (1 MMIO read + compare + branch).
+#define XI2C_CH32_CYCLES_PER_POLL_LOOP 8U
+
 // TYPES ///////////////////////////////////////////////////////////////////////////
 
 // VARIABLES ///////////////////////////////////////////////////////////////////////
@@ -43,8 +46,6 @@ static xRETURN_t ch32_init(void *driver_ctx, const xI2C_Config_t *config);
 static xRETURN_t ch32_deinit(void *driver_ctx);
 static xRETURN_t ch32_start(void *driver_ctx);
 static xRETURN_t ch32_stop(void *driver_ctx);
-static xRETURN_t ch32_get_capabilities(const void *driver_ctx, xI2C_Capabilities_t *capabilities);
-static xRETURN_t ch32_get_status(void *driver_ctx, xI2C_Status_t *status);
 static xRETURN_t ch32_set_event_callback(void *driver_ctx, xI2C_Driver_Event_Callback_t callback, void *callback_ctx);
 static xRETURN_t ch32_transfer(void *driver_ctx, const xI2C_Transaction_t *transaction);
 
@@ -53,8 +54,6 @@ const xI2C_Driver_Ops_t xI2C_CH32H417_Driver_Ops = {
     .deinit             = ch32_deinit,
     .start              = ch32_start,
     .stop               = ch32_stop,
-    .get_capabilities   = ch32_get_capabilities,
-    .get_status         = ch32_get_status,
     .set_event_callback = ch32_set_event_callback,
     .transfer           = ch32_transfer,
     .transfer_async     = NULL,
@@ -230,38 +229,6 @@ static xRETURN_t ch32_stop(void *driver_ctx)
     return xRETURN_OK;
 }
 
-static xRETURN_t ch32_get_capabilities(const void *driver_ctx, xI2C_Capabilities_t *capabilities)
-{
-    (void)driver_ctx;
-    if (capabilities == NULL)
-    {
-        return xRETURN_xERR_xI2C_NULL_POINTER;
-    }
-
-    (void)memset(capabilities, 0, sizeof(*capabilities));
-    capabilities->max_clock_hz = 400000U;
-
-    return xRETURN_OK;
-}
-
-static xRETURN_t ch32_get_status(void *driver_ctx, xI2C_Status_t *status)
-{
-    xI2C_CH32H417_Context_t *ctx = (xI2C_CH32H417_Context_t *)driver_ctx;
-    if ((ctx == NULL) || (status == NULL))
-    {
-        return xRETURN_xERR_xI2C_NULL_POINTER;
-    }
-
-    status->is_initialized       = ctx->is_initialized;
-    status->is_started           = ctx->is_started;
-    status->is_busy              = ctx->is_busy;
-    status->is_bus_acquired      = false;
-    status->has_bus_error        = (ctx->i2c->STAR1 & I2C_STAR1_BERR) != 0U;
-    status->has_arbitration_lost = (ctx->i2c->STAR1 & I2C_STAR1_ARLO) != 0U;
-    status->last_error           = ctx->last_error;
-
-    return xRETURN_OK;
-}
 
 static xRETURN_t ch32_set_event_callback(void *driver_ctx, xI2C_Driver_Event_Callback_t callback, void *callback_ctx)
 {
@@ -280,10 +247,16 @@ static xRETURN_t ch32_transfer(void *driver_ctx, const xI2C_Transaction_t *trans
         return xRETURN_xERR_xI2C_NULL_POINTER;
     }
 
-    uint32_t timeout_loops = transaction->timeout_ms * 1000U;
-    if (timeout_loops == 0U)
+    uint32_t loops_per_ms = ctx->pclk_hz / (XI2C_CH32_CYCLES_PER_POLL_LOOP * 1000U);
+    if (loops_per_ms == 0U) { loops_per_ms = 1U; }
+    uint32_t timeout_loops;
+    if (transaction->timeout_ms == 0U)
     {
-        timeout_loops = 1000000U;
+        timeout_loops = loops_per_ms * 1000U; // 1-second generous default
+    }
+    else
+    {
+        timeout_loops = (uint32_t)((uint64_t)transaction->timeout_ms * loops_per_ms);
     }
 
     xRETURN_t status = xRETURN_OK;
@@ -460,6 +433,7 @@ static xRETURN_t ch32_transfer(void *driver_ctx, const xI2C_Transaction_t *trans
 
         if (bytes_to_read == 1U)
         {
+            // Single-byte: NAK and STOP before RXNE so hardware doesn't ACK the byte.
             i2c->CTLR1 &= ~(uint16_t)I2C_CTLR1_ACK;
             i2c->CTLR1 |= I2C_CTLR1_STOP;
 
@@ -477,14 +451,10 @@ static xRETURN_t ch32_transfer(void *driver_ctx, const xI2C_Transaction_t *trans
         }
         else
         {
+            // Multi-byte: disable ACK + issue STOP after reading the second-to-last byte
+            // so the last byte is received with NAK on the bus.
             for (uint32_t i = 0U; i < bytes_to_read; i++)
             {
-                if (i == (bytes_to_read - 1U))
-                {
-                    i2c->CTLR1 &= ~(uint16_t)I2C_CTLR1_ACK;
-                    i2c->CTLR1 |= I2C_CTLR1_STOP;
-                }
-
                 guard = 0U;
                 while ((i2c->STAR1 & I2C_STAR1_RXNE) == 0U)
                 {
@@ -493,6 +463,14 @@ static xRETURN_t ch32_transfer(void *driver_ctx, const xI2C_Transaction_t *trans
                         ctx->is_busy = false;
                         return xRETURN_xERR_xI2C_TIMEOUT;
                     }
+                }
+
+                if (i == (bytes_to_read - 2U))
+                {
+                    // After second-to-last RXNE: disable ACK so last byte is NAKed,
+                    // and queue STOP so it generates after the last byte completes.
+                    i2c->CTLR1 &= ~(uint16_t)I2C_CTLR1_ACK;
+                    i2c->CTLR1 |= I2C_CTLR1_STOP;
                 }
 
                 rx_ptr[i] = (uint8_t)(i2c->DATAR & 0xFFU);

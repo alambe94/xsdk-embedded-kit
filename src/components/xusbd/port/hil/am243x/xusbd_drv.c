@@ -13,7 +13,7 @@
 // limitations under the License.
 
 // @file xusbd_drv.c
-// @brief AM64x USB Device Controller Driver (USB0, single instance)
+// @brief AM243x USB Device Controller Driver (USB0, single instance)
 
 // INCLUDES ////////////////////////////////////////////////////////////////////////
 // COMPILER INCLUDES
@@ -49,7 +49,7 @@
 #include "xusb_defs.h"
 #include "xusbd_return.h"
 #include "xusbd_drv.h"
-#include "am64x_phy.h"
+#include "am243x_phy.h"
 #include "xusbd_log.h"
 
 // MACROS /////////////////////////////////////////////////////////////////////////
@@ -96,7 +96,7 @@ CUSBD_OBJ *ObjCusbd = NULL;
 
 // Single instance - USB0 only. Multi-instance would require a context pointer
 // threaded through the Cadence callbacks, which the Cadence API does not support.
-xUSBD_AM64x_DCD_Context_t xUSBD_AM64x_DCD_Context = {0};
+xUSBD_AM243x_DCD_Context_t xUSBD_AM243x_DCD_Context = {0};
 
 // EXTERN VARIABLES ////////////////////////////////////////////////////////////////
 
@@ -117,25 +117,25 @@ static void businterval(CUSBD_PrivateData *pD);
 static void descmissing(CUSBD_PrivateData *pD, uint8_t epAddress);
 static void usb2physoftreset(CUSBD_PrivateData *pD);
 
-static xRETURN_t am64x_dcd_init(void *dcd_ctx, USB_Speed_t speed, void *device_ctx);
-static xRETURN_t am64x_dcd_deinit(void *dcd_ctx);
-static xRETURN_t am64x_dcd_set_event_callback(void *dcd_ctx, xUSBD_DCD_Event_Callback_t callback);
-static xRETURN_t am64x_dcd_connect(void *dcd_ctx);
-static xRETURN_t am64x_dcd_disconnect(void *dcd_ctx);
-static xRETURN_t am64x_dcd_enable_interrupts(void *dcd_ctx);
-static xRETURN_t am64x_dcd_disable_interrupts(void *dcd_ctx);
-static xRETURN_t am64x_dcd_set_address(void *dcd_ctx, uint8_t address);
-static xRETURN_t am64x_dcd_set_remote_wakeup(void *dcd_ctx, bool enable);
-static xRETURN_t am64x_dcd_set_test_mode(void *dcd_ctx, uint8_t mode);
-static uint32_t am64x_dcd_get_frame_number(void *dcd_ctx);
-static USB_Speed_t am64x_dcd_get_speed(void *dcd_ctx);
-static xRETURN_t am64x_dcd_ep_init(void *dcd_ctx, uint8_t ep_addr, uint8_t ep_type, uint16_t mps);
-static xRETURN_t am64x_dcd_ep_deinit(void *dcd_ctx, uint8_t ep_addr);
-static xRETURN_t am64x_dcd_ep_receive(void *dcd_ctx, uint8_t ep_addr, uint8_t *data, uint32_t length);
-static xRETURN_t am64x_dcd_ep_send(void *dcd_ctx, uint8_t ep_addr, uint8_t *data, uint32_t length, bool is_zlp_required);
-static xRETURN_t am64x_dcd_ep_stall(void *dcd_ctx, uint8_t ep_addr);
-static xRETURN_t am64x_dcd_ep_clear_stall(void *dcd_ctx, uint8_t ep_addr);
-static bool am64x_dcd_ep_is_stalled(void *dcd_ctx, uint8_t ep_addr);
+static xRETURN_t am243x_dcd_init(void *dcd_ctx, USB_Speed_t speed, void *device_ctx);
+static xRETURN_t am243x_dcd_deinit(void *dcd_ctx);
+static xRETURN_t am243x_dcd_set_event_callback(void *dcd_ctx, xUSBD_DCD_Event_Callback_t callback);
+static xRETURN_t am243x_dcd_connect(void *dcd_ctx);
+static xRETURN_t am243x_dcd_disconnect(void *dcd_ctx);
+static xRETURN_t am243x_dcd_enable_interrupts(void *dcd_ctx);
+static xRETURN_t am243x_dcd_disable_interrupts(void *dcd_ctx);
+static xRETURN_t am243x_dcd_set_address(void *dcd_ctx, uint8_t address);
+static xRETURN_t am243x_dcd_set_remote_wakeup(void *dcd_ctx, bool enable);
+static xRETURN_t am243x_dcd_set_test_mode(void *dcd_ctx, uint8_t mode);
+static uint32_t am243x_dcd_get_frame_number(void *dcd_ctx);
+static USB_Speed_t am243x_dcd_get_speed(void *dcd_ctx);
+static xRETURN_t am243x_dcd_ep_init(void *dcd_ctx, uint8_t ep_addr, uint8_t ep_type, uint16_t mps);
+static xRETURN_t am243x_dcd_ep_deinit(void *dcd_ctx, uint8_t ep_addr);
+static xRETURN_t am243x_dcd_ep_receive(void *dcd_ctx, uint8_t ep_addr, uint8_t *data, uint32_t length);
+static xRETURN_t am243x_dcd_ep_send(void *dcd_ctx, uint8_t ep_addr, uint8_t *data, uint32_t length, bool is_zlp_required);
+static xRETURN_t am243x_dcd_ep_stall(void *dcd_ctx, uint8_t ep_addr);
+static xRETURN_t am243x_dcd_ep_clear_stall(void *dcd_ctx, uint8_t ep_addr);
+static bool am243x_dcd_ep_is_stalled(void *dcd_ctx, uint8_t ep_addr);
 
 static CUSBD_Callbacks Callbacks = {disconnect, connect, setup, suspend, resume, businterval, descmissing, usb2physoftreset};
 
@@ -147,7 +147,7 @@ static CUSBD_Callbacks Callbacks = {disconnect, connect, setup, suspend, resume,
 
 static void connect(CUSBD_PrivateData *pD)
 {
-    xUSBD_AM64x_DCD_Context_t *ctx = &xUSBD_AM64x_DCD_Context;
+    xUSBD_AM243x_DCD_Context_t *ctx = &xUSBD_AM243x_DCD_Context;
 
     if (ObjCusbd != NULL && pD != NULL)
     {
@@ -178,7 +178,8 @@ static void connect(CUSBD_PrivateData *pD)
 
 static void disconnect(CUSBD_PrivateData *pD)
 {
-    xUSBD_AM64x_DCD_Context_t *ctx = &xUSBD_AM64x_DCD_Context;
+    (void)pD;
+    xUSBD_AM243x_DCD_Context_t *ctx = &xUSBD_AM243x_DCD_Context;
     if (ctx->event_callback != NULL)
     {
         ctx->event_callback(ctx->device_ctx, USB_DCD_DISCONNECT_RECEIVED, 0, NULL, 0);
@@ -187,7 +188,8 @@ static void disconnect(CUSBD_PrivateData *pD)
 
 static void resume(CUSBD_PrivateData *pD)
 {
-    xUSBD_AM64x_DCD_Context_t *ctx = &xUSBD_AM64x_DCD_Context;
+    (void)pD;
+    xUSBD_AM243x_DCD_Context_t *ctx = &xUSBD_AM243x_DCD_Context;
     if (ctx->event_callback != NULL)
     {
         ctx->event_callback(ctx->device_ctx, USB_DCD_RESUME_RECEIVED, 0, NULL, 0);
@@ -196,7 +198,8 @@ static void resume(CUSBD_PrivateData *pD)
 
 static uint32_t setup(CUSBD_PrivateData *pD, CH9_UsbSetup *ctrl)
 {
-    xUSBD_AM64x_DCD_Context_t *ctx = &xUSBD_AM64x_DCD_Context;
+    (void)pD;
+    xUSBD_AM243x_DCD_Context_t *ctx = &xUSBD_AM243x_DCD_Context;
     if (ctx->event_callback != NULL)
     {
         ctx->event_callback(ctx->device_ctx, USB_DCD_SETUP_RECEIVED, 0, (uint8_t *)ctrl, sizeof(CH9_UsbSetup));
@@ -206,7 +209,8 @@ static uint32_t setup(CUSBD_PrivateData *pD, CH9_UsbSetup *ctrl)
 
 static void suspend(CUSBD_PrivateData *pD)
 {
-    xUSBD_AM64x_DCD_Context_t *ctx = &xUSBD_AM64x_DCD_Context;
+    (void)pD;
+    xUSBD_AM243x_DCD_Context_t *ctx = &xUSBD_AM243x_DCD_Context;
     if (ctx->event_callback != NULL)
     {
         ctx->event_callback(ctx->device_ctx, USB_DCD_SUSPEND_RECEIVED, 0, NULL, 0);
@@ -215,7 +219,8 @@ static void suspend(CUSBD_PrivateData *pD)
 
 static void businterval(CUSBD_PrivateData *pD)
 {
-    xUSBD_AM64x_DCD_Context_t *ctx = &xUSBD_AM64x_DCD_Context;
+    (void)pD;
+    xUSBD_AM243x_DCD_Context_t *ctx = &xUSBD_AM243x_DCD_Context;
     if (ctx->event_callback != NULL)
     {
         ctx->event_callback(ctx->device_ctx, USB_DCD_SOF_RECEIVED, 0, NULL, 0);
@@ -224,17 +229,20 @@ static void businterval(CUSBD_PrivateData *pD)
 
 static void descmissing(CUSBD_PrivateData *pD, uint8_t epAddress)
 {
+    (void)pD;
+    (void)epAddress;
 }
 
 static void usb2physoftreset(CUSBD_PrivateData *pD)
 {
+    (void)pD;
 }
 
 // ============================================================================
 //  * DMA Transfer Completion Callbacks
 // ============================================================================
 
-static void ep_advance_progress(xUSBD_AM64x_EP_Handle_t *ep_handle, uint32_t actual)
+static void ep_advance_progress(xUSBD_AM243x_EP_Handle_t *ep_handle, uint32_t actual)
 {
     ep_handle->Actual_XFER_Length += actual;
     ep_handle->Current_Data += actual;
@@ -242,7 +250,7 @@ static void ep_advance_progress(xUSBD_AM64x_EP_Handle_t *ep_handle, uint32_t act
 }
 
 static void
-ep_notify_complete(xUSBD_AM64x_DCD_Context_t *ctx, uint8_t ep_address, xUSBD_AM64x_EP_Handle_t *ep_handle, USB_DCD_Event_t event_type)
+ep_notify_complete(xUSBD_AM243x_DCD_Context_t *ctx, uint8_t ep_address, xUSBD_AM243x_EP_Handle_t *ep_handle, USB_DCD_Event_t event_type)
 {
     if (ctx->event_callback != NULL)
     {
@@ -252,9 +260,9 @@ ep_notify_complete(xUSBD_AM64x_DCD_Context_t *ctx, uint8_t ep_address, xUSBD_AM6
 
 static void outepxfercmplcb(CUSBD_Ep *ep, CUSBD_Req *request)
 {
-    xUSBD_AM64x_DCD_Context_t *ctx = &xUSBD_AM64x_DCD_Context;
+    xUSBD_AM243x_DCD_Context_t *ctx = &xUSBD_AM243x_DCD_Context;
     uint8_t ep_number = ep->address & 0x7F;
-    xUSBD_AM64x_EP_Handle_t *ep_handle = &ctx->out_ep_handles[ep_number];
+    xUSBD_AM243x_EP_Handle_t *ep_handle = &ctx->out_ep_handles[ep_number];
 
     memcpy(request->buf, (uint8_t *)request->dma, request->actual);
     ep_advance_progress(ep_handle, request->actual);
@@ -281,9 +289,9 @@ static void outepxfercmplcb(CUSBD_Ep *ep, CUSBD_Req *request)
 
 static void inepxfercmplcb(CUSBD_Ep *ep, CUSBD_Req *request)
 {
-    xUSBD_AM64x_DCD_Context_t *ctx = &xUSBD_AM64x_DCD_Context;
+    xUSBD_AM243x_DCD_Context_t *ctx = &xUSBD_AM243x_DCD_Context;
     uint8_t ep_number = ep->address & 0x7F;
-    xUSBD_AM64x_EP_Handle_t *ep_handle = &ctx->in_ep_handles[ep_number];
+    xUSBD_AM243x_EP_Handle_t *ep_handle = &ctx->in_ep_handles[ep_number];
 
     ep_advance_progress(ep_handle, request->actual);
 
@@ -347,7 +355,7 @@ static int usb3_phy_init(void)
     socStatus = SOC_moduleClockEnable(TISCI_DEV_SERDES_10G0, 1u);
     if (socStatus != SystemP_SUCCESS)
     {
-        xLOG(0x10E0, "USB3 PHY: failed to enable SERDES_10G0 module clock (%d)\r\n", socStatus);
+        xUSBD_LOG(0x10E0, "USB3 PHY: failed to enable SERDES_10G0 module clock (%d)\r\n", socStatus);
         return -1;
     }
 
@@ -396,7 +404,7 @@ static int usb3_phy_init(void)
                                  serdesLaneEnableParams.phyType);
     if (result != CSL_SERDES_NO_ERR)
     {
-        xLOG(0x10E0, "USB3 PHY: CSL_serdesRefclkSel failed (%d)\r\n", result);
+        xUSBD_LOG(0x10E0, "USB3 PHY: CSL_serdesRefclkSel failed (%d)\r\n", result);
         return -3;
     }
 
@@ -409,7 +417,7 @@ static int usb3_phy_init(void)
     result = CSL_serdesUSBInit(&serdesLaneEnableParams);
     if (result != CSL_SERDES_NO_ERR)
     {
-        xLOG(0x10E0, "USB3 PHY: CSL_serdesUSBInit failed (%d)\r\n", result);
+        xUSBD_LOG(0x10E0, "USB3 PHY: CSL_serdesUSBInit failed (%d)\r\n", result);
         return -4;
     }
 
@@ -417,7 +425,7 @@ static int usb3_phy_init(void)
     laneStatus = CSL_serdesLaneEnable(&serdesLaneEnableParams);
     if (laneStatus != CSL_SERDES_LANE_ENABLE_NO_ERR)
     {
-        xLOG(0x10E0, "USB3 PHY: CSL_serdesLaneEnable failed (%d)\r\n", laneStatus);
+        xUSBD_LOG(0x10E0, "USB3 PHY: CSL_serdesLaneEnable failed (%d)\r\n", laneStatus);
         return -5;
     }
 
@@ -426,7 +434,7 @@ static int usb3_phy_init(void)
                                           serdesLaneEnableParams.serdesInstance);
     if (SerdesStatus != CSL_SERDES_STATUS_PLL_LOCKED)
     {
-        xLOG(0x10E0, "USB3 PHY: PLL failed to lock (%d)\r\n", SerdesStatus);
+        xUSBD_LOG(0x10E0, "USB3 PHY: PLL failed to lock (%d)\r\n", SerdesStatus);
         return -6;
     }
 
@@ -444,7 +452,7 @@ static int usb3_phy_init(void)
 
     if (pipeStatus != CSL_SERDES_STATUS_PIPE_CLK_VALID)
     {
-        xLOG(0x10E0, "USB3 PHY: PIPE clock timeout\r\n");
+        xUSBD_LOG(0x10E0, "USB3 PHY: PIPE clock timeout\r\n");
         return -8;
     }
 #else
@@ -464,13 +472,13 @@ static int usb3_phy_init(void)
     HW_WR_FIELD32((CSL_CTRL_MMR0_CFG0_BASE + CSL_MAIN_CTRL_MMR_CFG0_SERDES0_CLKSEL), CSL_MAIN_CTRL_MMR_CFG0_SERDES0_CLKSEL_CORE_REFCLK_SEL,
                   0x3U);
 
-    // am64x_wiz_init() internally:
+    // am243x_wiz_init() internally:
     //   1. WIZ POR + clock + raw interface
-    //   2. am64x_torrent_phy_configure()   - Torrent register tables
+    //   2. am243x_torrent_phy_configure()   - Torrent register tables
     //   3. WIZ lane enable + PHY reset deassert
-    if (am64x_wiz_init(CSL_SERDES_10G0_BASE, PHY_TYPE_USB3, 0, 100000000U) != 0)
+    if (am243x_wiz_init(CSL_SERDES_10G0_BASE, PHY_TYPE_USB3, 0, 100000000U) != 0)
     {
-        xLOG(0x10E0, "USB3 PHY: SERDES init failed\r\n");
+        xUSBD_LOG(0x10E0, "USB3 PHY: SERDES init failed\r\n");
         return -2;
     }
 #endif
@@ -484,11 +492,13 @@ static int usb3_phy_init(void)
 
 static void usb_irq6_isr(void *arg)
 {
+    (void)arg;
     CUSBD_Isr(pD);
 }
 
-void xUSBD_AM64x_DCD_IRQ_Handler(uint8_t port)
+void xUSBD_AM243x_DCD_IRQ_Handler(uint8_t port)
 {
+    (void)port;
     xASSERT(port < xUSBD_DEVICE_MAX_INSTANCE, "Port out of range");
     // Handler is called from usb_irq6_isr - no additional processing needed
 }
@@ -497,16 +507,16 @@ void xUSBD_AM64x_DCD_IRQ_Handler(uint8_t port)
 //  * DCD Ops Implementations
 // ============================================================================
 
-static xRETURN_t am64x_dcd_init(void *dcd_ctx, USB_Speed_t speed, void *device_ctx)
+static xRETURN_t am243x_dcd_init(void *dcd_ctx, USB_Speed_t speed, void *device_ctx)
 {
-    xUSBD_AM64x_DCD_Context_t *ctx = (xUSBD_AM64x_DCD_Context_t *)dcd_ctx;
+    xUSBD_AM243x_DCD_Context_t *ctx = (xUSBD_AM243x_DCD_Context_t *)dcd_ctx;
     if (ctx == NULL)
     {
         return xRETURN_xERR_xUSBD_NULL_POINTER;
     }
 
     xASSERT(ctx->port < xUSBD_DEVICE_MAX_INSTANCE, "Port out of range");
-    xLOG(0x1001, "USB_DCD_Init: port=%d, speed=%d", ctx->port, speed);
+    xUSBD_LOG(0x1001, "USB_DCD_Init: port=%d, speed=%d", ctx->port, speed);
 
     ctx->device_ctx = device_ctx;
     ctx->speed = speed;
@@ -514,7 +524,7 @@ static xRETURN_t am64x_dcd_init(void *dcd_ctx, USB_Speed_t speed, void *device_c
 
     if (ctx->is_hardware_initialized)
     {
-        xLOG(0x1001, "USB_DCD_Init: already initialized");
+        xUSBD_LOG(0x1001, "USB_DCD_Init: already initialized");
         return xRETURN_OK;
     }
 
@@ -522,11 +532,11 @@ static xRETURN_t am64x_dcd_init(void *dcd_ctx, USB_Speed_t speed, void *device_c
     int status;
 
     // ===== Enable USB0 Module Clock =====
-    xLOG(0x10E0, "USB_DCD: enabling USB0 module clock...\r\n");
+    xUSBD_LOG(0x10E0, "USB_DCD: enabling USB0 module clock...\r\n");
     socStatus = SOC_moduleClockEnable(TISCI_DEV_USB0, 1u);
     if (socStatus != SystemP_SUCCESS)
     {
-        xLOG(0x10E0, "USB_DCD: failed to enable USB0 module clock (%d)\r\n", socStatus);
+        xUSBD_LOG(0x10E0, "USB_DCD: failed to enable USB0 module clock (%d)\r\n", socStatus);
         return xRETURN_xERR_xUSBD_DCD_INVALID_PORT;
     }
 
@@ -538,7 +548,7 @@ static xRETURN_t am64x_dcd_init(void *dcd_ctx, USB_Speed_t speed, void *device_c
     {
         if (usb3_phy_init() != 0)
         {
-            xLOG(0x10E0, "USB_DCD: USB3 PHY initialization failed\r\n");
+            xUSBD_LOG(0x10E0, "USB_DCD: USB3 PHY initialization failed\r\n");
             return xRETURN_xERR_xUSBD_DCD_INVALID_PORT;
         }
     }
@@ -606,14 +616,14 @@ static xRETURN_t am64x_dcd_init(void *dcd_ctx, USB_Speed_t speed, void *device_c
     ObjCusbd = CUSBD_GetInstance();
     if (ObjCusbd == NULL)
     {
-        xLOG(0x10E0, "USB_DCD: failed to get Cadence driver instance\r\n");
+        xUSBD_LOG(0x10E0, "USB_DCD: failed to get Cadence driver instance\r\n");
         return xRETURN_xERR_xUSBD_DCD_INVALID_PORT;
     }
 
     status = ObjCusbd->probe(&Config, &sysRequestCusbd);
     if (status != 0)
     {
-        xLOG(0x10E0, "USB_DCD: Cadence probe failed (%d)\r\n", status);
+        xUSBD_LOG(0x10E0, "USB_DCD: Cadence probe failed (%d)\r\n", status);
         return xRETURN_xERR_xUSBD_DCD_INVALID_PORT;
     }
 
@@ -624,14 +634,14 @@ static xRETURN_t am64x_dcd_init(void *dcd_ctx, USB_Speed_t speed, void *device_c
     }
     else
     {
-        xLOG(0x10E0, "USB_DCD: insufficient memory for private data\r\n");
+        xUSBD_LOG(0x10E0, "USB_DCD: insufficient memory for private data\r\n");
         return xRETURN_xERR_xUSBD_DCD_INVALID_PORT;
     }
 
     status = ObjCusbd->init(pD, &Config, &Callbacks);
     if (status != 0)
     {
-        xLOG(0x10E0, "USB_DCD: Cadence init failed (%d)\r\n", status);
+        xUSBD_LOG(0x10E0, "USB_DCD: Cadence init failed (%d)\r\n", status);
         return xRETURN_xERR_xUSBD_DCD_INVALID_PORT;
     }
 
@@ -643,21 +653,21 @@ static xRETURN_t am64x_dcd_init(void *dcd_ctx, USB_Speed_t speed, void *device_c
     HwiP_construct(&hwiObjUsb, &hwiParamsUsb);
 
     ctx->is_hardware_initialized = true;
-    xLOG(0x10E0, "USB_DCD: initialization complete\r\n");
+    xUSBD_LOG(0x10E0, "USB_DCD: initialization complete\r\n");
 
     return xRETURN_OK;
 }
 
-static xRETURN_t am64x_dcd_deinit(void *dcd_ctx)
+static xRETURN_t am243x_dcd_deinit(void *dcd_ctx)
 {
-    xUSBD_AM64x_DCD_Context_t *ctx = (xUSBD_AM64x_DCD_Context_t *)dcd_ctx;
+    xUSBD_AM243x_DCD_Context_t *ctx = (xUSBD_AM243x_DCD_Context_t *)dcd_ctx;
     if (ctx == NULL)
     {
         return xRETURN_xERR_xUSBD_NULL_POINTER;
     }
 
     xASSERT(ctx->port < xUSBD_DEVICE_MAX_INSTANCE, "Port out of range");
-    xLOG(0x1002, "USB_DCD_Deinit");
+    xUSBD_LOG(0x1002, "USB_DCD_Deinit");
 
     HwiP_destruct(&hwiObjUsb);
 
@@ -670,26 +680,27 @@ static xRETURN_t am64x_dcd_deinit(void *dcd_ctx)
     return xRETURN_OK;
 }
 
-static xRETURN_t am64x_dcd_set_event_callback(void *dcd_ctx, xUSBD_DCD_Event_Callback_t callback)
+static xRETURN_t am243x_dcd_set_event_callback(void *dcd_ctx, xUSBD_DCD_Event_Callback_t callback)
 {
-    xUSBD_AM64x_DCD_Context_t *ctx = (xUSBD_AM64x_DCD_Context_t *)dcd_ctx;
+    xUSBD_AM243x_DCD_Context_t *ctx = (xUSBD_AM243x_DCD_Context_t *)dcd_ctx;
     if (ctx == NULL || callback == NULL)
     {
         return xRETURN_xERR_xUSBD_NULL_POINTER;
     }
 
     xASSERT(callback != NULL, "Event callback is NULL");
-    xLOG(0x100C, "USB_DCD_Set_Event_Callback: port=%d", ctx->port);
+    xUSBD_LOG(0x100C, "USB_DCD_Set_Event_Callback: port=%d", ctx->port);
 
     ctx->event_callback = callback;
     return xRETURN_OK;
 }
 
-static xRETURN_t am64x_dcd_connect(void *dcd_ctx)
+static xRETURN_t am243x_dcd_connect(void *dcd_ctx)
 {
-    xUSBD_AM64x_DCD_Context_t *ctx = (xUSBD_AM64x_DCD_Context_t *)dcd_ctx;
+    xUSBD_AM243x_DCD_Context_t *ctx = (xUSBD_AM243x_DCD_Context_t *)dcd_ctx;
+    (void)ctx;
     xASSERT(ctx->port < xUSBD_DEVICE_MAX_INSTANCE, "Port out of range");
-    xLOG(0x1002, "USB_DCD_Connect");
+    xUSBD_LOG(0x1002, "USB_DCD_Connect");
 
     if (ObjCusbd != NULL && pD != NULL)
     {
@@ -699,11 +710,12 @@ static xRETURN_t am64x_dcd_connect(void *dcd_ctx)
     return xRETURN_OK;
 }
 
-static xRETURN_t am64x_dcd_disconnect(void *dcd_ctx)
+static xRETURN_t am243x_dcd_disconnect(void *dcd_ctx)
 {
-    xUSBD_AM64x_DCD_Context_t *ctx = (xUSBD_AM64x_DCD_Context_t *)dcd_ctx;
+    xUSBD_AM243x_DCD_Context_t *ctx = (xUSBD_AM243x_DCD_Context_t *)dcd_ctx;
+    (void)ctx;
     xASSERT(ctx->port < xUSBD_DEVICE_MAX_INSTANCE, "Port out of range");
-    xLOG(0x1003, "USB_DCD_Disconnect");
+    xUSBD_LOG(0x1003, "USB_DCD_Disconnect");
 
     if (ObjCusbd != NULL && pD != NULL)
     {
@@ -713,33 +725,37 @@ static xRETURN_t am64x_dcd_disconnect(void *dcd_ctx)
     return xRETURN_OK;
 }
 
-static xRETURN_t am64x_dcd_enable_interrupts(void *dcd_ctx)
+static xRETURN_t am243x_dcd_enable_interrupts(void *dcd_ctx)
 {
-    xUSBD_AM64x_DCD_Context_t *ctx = (xUSBD_AM64x_DCD_Context_t *)dcd_ctx;
+    xUSBD_AM243x_DCD_Context_t *ctx = (xUSBD_AM243x_DCD_Context_t *)dcd_ctx;
+    (void)ctx;
     xASSERT(ctx->port < xUSBD_DEVICE_MAX_INSTANCE, "Port out of range");
-    xLOG(0x100B, "USB_DCD_Enable_Interrupts: port=%d", ctx->port);
+    xUSBD_LOG(0x100B, "USB_DCD_Enable_Interrupts: port=%d", ctx->port);
 
     HwiP_enableInt(CSLR_R5FSS0_CORE0_INTR_USB0_IRQ_6);
 
     return xRETURN_OK;
 }
 
-static xRETURN_t am64x_dcd_disable_interrupts(void *dcd_ctx)
+static xRETURN_t am243x_dcd_disable_interrupts(void *dcd_ctx)
 {
-    xUSBD_AM64x_DCD_Context_t *ctx = (xUSBD_AM64x_DCD_Context_t *)dcd_ctx;
+    xUSBD_AM243x_DCD_Context_t *ctx = (xUSBD_AM243x_DCD_Context_t *)dcd_ctx;
+    (void)ctx;
     xASSERT(ctx->port < xUSBD_DEVICE_MAX_INSTANCE, "Port out of range");
-    xLOG(0x100B, "USB_DCD_Disable_Interrupts: port=%d", ctx->port);
+    xUSBD_LOG(0x100B, "USB_DCD_Disable_Interrupts: port=%d", ctx->port);
 
     HwiP_disableInt(CSLR_R5FSS0_CORE0_INTR_USB0_IRQ_6);
 
     return xRETURN_OK;
 }
 
-static xRETURN_t am64x_dcd_set_address(void *dcd_ctx, uint8_t address)
+static xRETURN_t am243x_dcd_set_address(void *dcd_ctx, uint8_t address)
 {
-    xUSBD_AM64x_DCD_Context_t *ctx = (xUSBD_AM64x_DCD_Context_t *)dcd_ctx;
+    xUSBD_AM243x_DCD_Context_t *ctx = (xUSBD_AM243x_DCD_Context_t *)dcd_ctx;
+    (void)ctx;
+    (void)address;
     xASSERT(ctx->port < xUSBD_DEVICE_MAX_INSTANCE, "Port out of range");
-    xLOG(0x1004, "USB_DCD_Set_Address: %d", address);
+    xUSBD_LOG(0x1004, "USB_DCD_Set_Address: %d", address);
 #if 0
     if (ObjCusbd != NULL && pD != NULL)
     {
@@ -748,29 +764,34 @@ static xRETURN_t am64x_dcd_set_address(void *dcd_ctx, uint8_t address)
     return xRETURN_OK;
 }
 
-static xRETURN_t am64x_dcd_set_remote_wakeup(void *dcd_ctx, bool enable)
+static xRETURN_t am243x_dcd_set_remote_wakeup(void *dcd_ctx, bool enable)
 {
-    xUSBD_AM64x_DCD_Context_t *ctx = (xUSBD_AM64x_DCD_Context_t *)dcd_ctx;
+    xUSBD_AM243x_DCD_Context_t *ctx = (xUSBD_AM243x_DCD_Context_t *)dcd_ctx;
+    (void)ctx;
+    (void)enable;
     xASSERT(ctx->port < xUSBD_DEVICE_MAX_INSTANCE, "Port out of range");
-    xLOG(0x1005, "USB_DCD_Set_Remote_Wakeup: %d", enable);
+    xUSBD_LOG(0x1005, "USB_DCD_Set_Remote_Wakeup: %d", enable);
 
     return xRETURN_OK;
 }
 
-static xRETURN_t am64x_dcd_set_test_mode(void *dcd_ctx, uint8_t mode)
+static xRETURN_t am243x_dcd_set_test_mode(void *dcd_ctx, uint8_t mode)
 {
-    xUSBD_AM64x_DCD_Context_t *ctx = (xUSBD_AM64x_DCD_Context_t *)dcd_ctx;
+    xUSBD_AM243x_DCD_Context_t *ctx = (xUSBD_AM243x_DCD_Context_t *)dcd_ctx;
+    (void)ctx;
+    (void)mode;
     xASSERT(ctx->port < xUSBD_DEVICE_MAX_INSTANCE, "Port out of range");
-    xLOG(0x1006, "USB_DCD_Set_Test_Mode: 0x%02X", mode);
+    xUSBD_LOG(0x1006, "USB_DCD_Set_Test_Mode: 0x%02X", mode);
 
     return xRETURN_OK;
 }
 
-static uint32_t am64x_dcd_get_frame_number(void *dcd_ctx)
+static uint32_t am243x_dcd_get_frame_number(void *dcd_ctx)
 {
-    xUSBD_AM64x_DCD_Context_t *ctx = (xUSBD_AM64x_DCD_Context_t *)dcd_ctx;
+    xUSBD_AM243x_DCD_Context_t *ctx = (xUSBD_AM243x_DCD_Context_t *)dcd_ctx;
+    (void)ctx;
     xASSERT(ctx->port < xUSBD_DEVICE_MAX_INSTANCE, "Port out of range");
-    xLOG(0x100A, "USB_DCD_Get_Frame_Number: port=%d", ctx->port);
+    xUSBD_LOG(0x100A, "USB_DCD_Get_Frame_Number: port=%d", ctx->port);
 
     uint32_t numOfFrame = 0;
     if (ObjCusbd != NULL && pD != NULL)
@@ -782,11 +803,12 @@ static uint32_t am64x_dcd_get_frame_number(void *dcd_ctx)
     return 0;
 }
 
-static USB_Speed_t am64x_dcd_get_speed(void *dcd_ctx)
+static USB_Speed_t am243x_dcd_get_speed(void *dcd_ctx)
 {
-    xUSBD_AM64x_DCD_Context_t *ctx = (xUSBD_AM64x_DCD_Context_t *)dcd_ctx;
+    xUSBD_AM243x_DCD_Context_t *ctx = (xUSBD_AM243x_DCD_Context_t *)dcd_ctx;
+    (void)ctx;
     xASSERT(ctx->port < xUSBD_DEVICE_MAX_INSTANCE, "Port out of range");
-    xLOG(0x1009, "USB_DCD_Get_Enumerated_Speed: port=%d", ctx->port);
+    xUSBD_LOG(0x1009, "USB_DCD_Get_Enumerated_Speed: port=%d", ctx->port);
 
     if (ObjCusbd != NULL && pD != NULL)
     {
@@ -808,16 +830,16 @@ static USB_Speed_t am64x_dcd_get_speed(void *dcd_ctx)
     return USB_SPEED_HIGH;
 }
 
-static xRETURN_t am64x_dcd_ep_init(void *dcd_ctx, uint8_t ep_addr, uint8_t ep_type, uint16_t mps)
+static xRETURN_t am243x_dcd_ep_init(void *dcd_ctx, uint8_t ep_addr, uint8_t ep_type, uint16_t mps)
 {
-    xUSBD_AM64x_DCD_Context_t *ctx = (xUSBD_AM64x_DCD_Context_t *)dcd_ctx;
+    xUSBD_AM243x_DCD_Context_t *ctx = (xUSBD_AM243x_DCD_Context_t *)dcd_ctx;
     xASSERT(ctx->port < xUSBD_DEVICE_MAX_INSTANCE, "Port out of range");
-    xLOG(0x1007, "USB_DCD_EP_Init: ep=0x%02X, type=%d, mps=%d", ep_addr, ep_type, mps);
+    xUSBD_LOG(0x1007, "USB_DCD_EP_Init: ep=0x%02X, type=%d, mps=%d", ep_addr, ep_type, mps);
 
     uint8_t ep_number = (ep_addr & 0x7F);
     uint16_t _mps = (mps & 0x7FF);
     uint8_t count = 1 + (mps >> 11);
-    xUSBD_AM64x_EP_Handle_t *ep_handle = (ep_addr & 0x80) ? &ctx->in_ep_handles[ep_number] : &ctx->out_ep_handles[ep_number];
+    xUSBD_AM243x_EP_Handle_t *ep_handle = (ep_addr & 0x80) ? &ctx->in_ep_handles[ep_number] : &ctx->out_ep_handles[ep_number];
 
     ep_handle->MPS = _mps;
     ep_handle->EP_Type = ep_type;
@@ -864,18 +886,19 @@ static xRETURN_t am64x_dcd_ep_init(void *dcd_ctx, uint8_t ep_addr, uint8_t ep_ty
     }
     else
     {
-        xLOG(0x10E0, "USB_DCD_EP_Init: endpoint 0x%02X not found\r\n", ep_addr);
+        xUSBD_LOG(0x10E0, "USB_DCD_EP_Init: endpoint 0x%02X not found\r\n", ep_addr);
         return xRETURN_xERR_xUSBD_DCD_INVALID_ENDPOINT;
     }
 
     return xRETURN_OK;
 }
 
-static xRETURN_t am64x_dcd_ep_deinit(void *dcd_ctx, uint8_t ep_addr)
+static xRETURN_t am243x_dcd_ep_deinit(void *dcd_ctx, uint8_t ep_addr)
 {
-    xUSBD_AM64x_DCD_Context_t *ctx = (xUSBD_AM64x_DCD_Context_t *)dcd_ctx;
+    xUSBD_AM243x_DCD_Context_t *ctx = (xUSBD_AM243x_DCD_Context_t *)dcd_ctx;
+    (void)ctx;
     xASSERT(ctx->port < xUSBD_DEVICE_MAX_INSTANCE, "Port out of range");
-    xLOG(0x1007, "USB_DCD_EP_Deinit: ep=0x%02X", ep_addr);
+    xUSBD_LOG(0x1007, "USB_DCD_EP_Deinit: ep=0x%02X", ep_addr);
 
     if (ObjCusbd != NULL && pD != NULL)
     {
@@ -889,14 +912,14 @@ static xRETURN_t am64x_dcd_ep_deinit(void *dcd_ctx, uint8_t ep_addr)
     return xRETURN_OK;
 }
 
-static xRETURN_t am64x_dcd_ep_receive(void *dcd_ctx, uint8_t ep_addr, uint8_t *data, uint32_t length)
+static xRETURN_t am243x_dcd_ep_receive(void *dcd_ctx, uint8_t ep_addr, uint8_t *data, uint32_t length)
 {
-    xUSBD_AM64x_DCD_Context_t *ctx = (xUSBD_AM64x_DCD_Context_t *)dcd_ctx;
+    xUSBD_AM243x_DCD_Context_t *ctx = (xUSBD_AM243x_DCD_Context_t *)dcd_ctx;
     xASSERT(ctx->port < xUSBD_DEVICE_MAX_INSTANCE, "Port out of range");
-    xLOG(0x1008, "USB_DCD_EP_Prepare_To_Receive: ep=0x%02X, length=%d", ep_addr, length);
+    xUSBD_LOG(0x1008, "USB_DCD_EP_Prepare_To_Receive: ep=0x%02X, length=%d", ep_addr, length);
 
     uint8_t ep_number = (ep_addr & 0x7F);
-    xUSBD_AM64x_EP_Handle_t *ep_handle = &ctx->out_ep_handles[ep_number];
+    xUSBD_AM243x_EP_Handle_t *ep_handle = &ctx->out_ep_handles[ep_number];
 
     ep_handle->Data = data;
     ep_handle->Current_Data = data;
@@ -939,14 +962,14 @@ static xRETURN_t am64x_dcd_ep_receive(void *dcd_ctx, uint8_t ep_addr, uint8_t *d
     return xRETURN_OK;
 }
 
-static xRETURN_t am64x_dcd_ep_send(void *dcd_ctx, uint8_t ep_addr, uint8_t *data, uint32_t length, bool is_zlp_required)
+static xRETURN_t am243x_dcd_ep_send(void *dcd_ctx, uint8_t ep_addr, uint8_t *data, uint32_t length, bool is_zlp_required)
 {
-    xUSBD_AM64x_DCD_Context_t *ctx = (xUSBD_AM64x_DCD_Context_t *)dcd_ctx;
+    xUSBD_AM243x_DCD_Context_t *ctx = (xUSBD_AM243x_DCD_Context_t *)dcd_ctx;
     xASSERT(ctx->port < xUSBD_DEVICE_MAX_INSTANCE, "Port out of range");
-    xLOG(0x1008, "USB_DCD_EP_Prepare_To_Send: ep=0x%02X, length=%d, zlp=%d", ep_addr, length, is_zlp_required);
+    xUSBD_LOG(0x1008, "USB_DCD_EP_Prepare_To_Send: ep=0x%02X, length=%d, zlp=%d", ep_addr, length, is_zlp_required);
 
     uint8_t ep_number = (ep_addr & 0x7F);
-    xUSBD_AM64x_EP_Handle_t *ep_handle = &ctx->in_ep_handles[ep_number];
+    xUSBD_AM243x_EP_Handle_t *ep_handle = &ctx->in_ep_handles[ep_number];
 
     ep_handle->Send_ZLP = is_zlp_required;
     ep_handle->Data = data;
@@ -992,11 +1015,12 @@ static xRETURN_t am64x_dcd_ep_send(void *dcd_ctx, uint8_t ep_addr, uint8_t *data
     return xRETURN_OK;
 }
 
-static xRETURN_t am64x_dcd_ep_stall(void *dcd_ctx, uint8_t ep_addr)
+static xRETURN_t am243x_dcd_ep_stall(void *dcd_ctx, uint8_t ep_addr)
 {
-    xUSBD_AM64x_DCD_Context_t *ctx = (xUSBD_AM64x_DCD_Context_t *)dcd_ctx;
+    xUSBD_AM243x_DCD_Context_t *ctx = (xUSBD_AM243x_DCD_Context_t *)dcd_ctx;
+    (void)ctx;
     xASSERT(ctx->port < xUSBD_DEVICE_MAX_INSTANCE, "Port out of range");
-    xLOG(0x100B, "USB_DCD_EP_Set_Stall: ep=0x%02X", ep_addr);
+    xUSBD_LOG(0x100B, "USB_DCD_EP_Set_Stall: ep=0x%02X", ep_addr);
 
     if (ObjCusbd != NULL && pD != NULL)
     {
@@ -1010,11 +1034,12 @@ static xRETURN_t am64x_dcd_ep_stall(void *dcd_ctx, uint8_t ep_addr)
     return xRETURN_OK;
 }
 
-static xRETURN_t am64x_dcd_ep_clear_stall(void *dcd_ctx, uint8_t ep_addr)
+static xRETURN_t am243x_dcd_ep_clear_stall(void *dcd_ctx, uint8_t ep_addr)
 {
-    xUSBD_AM64x_DCD_Context_t *ctx = (xUSBD_AM64x_DCD_Context_t *)dcd_ctx;
+    xUSBD_AM243x_DCD_Context_t *ctx = (xUSBD_AM243x_DCD_Context_t *)dcd_ctx;
+    (void)ctx;
     xASSERT(ctx->port < xUSBD_DEVICE_MAX_INSTANCE, "Port out of range");
-    xLOG(0x100C, "USB_DCD_EP_Clear_Stall: ep=0x%02X", ep_addr);
+    xUSBD_LOG(0x100C, "USB_DCD_EP_Clear_Stall: ep=0x%02X", ep_addr);
 
     if (ObjCusbd != NULL && pD != NULL)
     {
@@ -1028,11 +1053,12 @@ static xRETURN_t am64x_dcd_ep_clear_stall(void *dcd_ctx, uint8_t ep_addr)
     return xRETURN_OK;
 }
 
-static bool am64x_dcd_ep_is_stalled(void *dcd_ctx, uint8_t ep_addr)
+static bool am243x_dcd_ep_is_stalled(void *dcd_ctx, uint8_t ep_addr)
 {
-    xUSBD_AM64x_DCD_Context_t *ctx = (xUSBD_AM64x_DCD_Context_t *)dcd_ctx;
+    xUSBD_AM243x_DCD_Context_t *ctx = (xUSBD_AM243x_DCD_Context_t *)dcd_ctx;
+    (void)ctx;
     xASSERT(ctx->port < xUSBD_DEVICE_MAX_INSTANCE, "Port out of range");
-    xLOG(0x100D, "USB_DCD_EP_Get_Stall: ep=0x%02X", ep_addr);
+    xUSBD_LOG(0x100D, "USB_DCD_EP_Get_Stall: ep=0x%02X", ep_addr);
 
     if (ObjCusbd != NULL && pD != NULL)
     {
@@ -1048,25 +1074,26 @@ static bool am64x_dcd_ep_is_stalled(void *dcd_ctx, uint8_t ep_addr)
 
 // PUBLIC FUNCTIONS IMPLEMENTATION /////////////////////////////////////////////////
 
-xUSBD_DCD_Ops_t xUSBD_AM64x_DCD_Ops = {
-    .init = am64x_dcd_init,
-    .deinit = am64x_dcd_deinit,
-    .set_event_callback = am64x_dcd_set_event_callback,
-    .connect = am64x_dcd_connect,
-    .disconnect = am64x_dcd_disconnect,
-    .enable_interrupts = am64x_dcd_enable_interrupts,
-    .disable_interrupts = am64x_dcd_disable_interrupts,
-    .set_address = am64x_dcd_set_address,
-    .set_remote_wakeup = am64x_dcd_set_remote_wakeup,
-    .set_test_mode = am64x_dcd_set_test_mode,
-    .get_frame_number = am64x_dcd_get_frame_number,
-    .get_speed = am64x_dcd_get_speed,
-    .ep_init = am64x_dcd_ep_init,
-    .ep_deinit = am64x_dcd_ep_deinit,
-    .ep_receive = am64x_dcd_ep_receive,
-    .ep_send = am64x_dcd_ep_send,
-    .ep_stall = am64x_dcd_ep_stall,
-    .ep_clear_stall = am64x_dcd_ep_clear_stall,
-    .ep_is_stalled = am64x_dcd_ep_is_stalled,
+xUSBD_DCD_Ops_t xUSBD_AM243x_DCD_Ops = {
+    .init = am243x_dcd_init,
+    .deinit = am243x_dcd_deinit,
+    .set_event_callback = am243x_dcd_set_event_callback,
+    .connect = am243x_dcd_connect,
+    .disconnect = am243x_dcd_disconnect,
+    .enable_interrupts = am243x_dcd_enable_interrupts,
+    .disable_interrupts = am243x_dcd_disable_interrupts,
+    .set_address = am243x_dcd_set_address,
+    .set_remote_wakeup = am243x_dcd_set_remote_wakeup,
+    .set_test_mode = am243x_dcd_set_test_mode,
+    .get_frame_number = am243x_dcd_get_frame_number,
+    .get_speed = am243x_dcd_get_speed,
+    .ep_init = am243x_dcd_ep_init,
+    .ep_deinit = am243x_dcd_ep_deinit,
+    .ep_receive = am243x_dcd_ep_receive,
+    .ep_send = am243x_dcd_ep_send,
+    .ep_stall = am243x_dcd_ep_stall,
+    .ep_clear_stall = am243x_dcd_ep_clear_stall,
+    .ep_is_stalled = am243x_dcd_ep_is_stalled,
 };
 // EOF /////////////////////////////////////////////////////////////////////////////
+

@@ -12,6 +12,8 @@ target_link_libraries(am243x_bringup PRIVATE
     xsdk::port::am243x
     xsdk::xuart
     xsdk::xtimer
+    xsdk::xi2c
+    xsdk::xspi
 )
 
 target_link_options(am243x_bringup PRIVATE

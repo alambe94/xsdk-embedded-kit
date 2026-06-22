@@ -27,6 +27,51 @@
       "output": "xusbd_dictionary.json",
       "min_id": 96,
       "max_id": 127
+    },
+    {
+      "name": "xusbh",
+      "header": "src/components/xusbh/include/xusbh_trace.h",
+      "prefix": "xUSBH_TRACE_CODE_",
+      "overlay": "tools/xtrace/examples/xusbh_overlay.json",
+      "output": "xusbh_dictionary.json",
+      "min_id": 128,
+      "max_id": 159
+    },
+    {
+      "name": "xuart",
+      "header": "src/drivers/xuart/include/xuart_trace.h",
+      "prefix": "xUART_TRACE_CODE_",
+      "overlay": "tools/xtrace/examples/xuart_overlay.json",
+      "output": "xuart_dictionary.json",
+      "min_id": 160,
+      "max_id": 191
+    },
+    {
+      "name": "xi2c",
+      "header": "src/drivers/xi2c/include/xi2c_trace.h",
+      "prefix": "xI2C_TRACE_CODE_",
+      "overlay": "tools/xtrace/examples/xi2c_overlay.json",
+      "output": "xi2c_dictionary.json",
+      "min_id": 192,
+      "max_id": 223
+    },
+    {
+      "name": "xspi",
+      "header": "src/drivers/xspi/include/xspi_trace.h",
+      "prefix": "xSPI_TRACE_CODE_",
+      "overlay": "tools/xtrace/examples/xspi_overlay.json",
+      "output": "xspi_dictionary.json",
+      "min_id": 224,
+      "max_id": 255
+    },
+    {
+      "name": "xgpio",
+      "header": "src/drivers/xgpio/include/xgpio_trace.h",
+      "prefix": "xGPIO_TRACE_CODE_",
+      "overlay": "tools/xtrace/examples/xgpio_overlay.json",
+      "output": "xgpio_dictionary.json",
+      "min_id": 256,
+      "max_id": 287
     }
   ],
   "combined_output": "sdk_dictionary.json"

@@ -20,15 +20,19 @@
 
 // Allocation block size of 32 events per module to keep core event IDs
 // within the single-byte LEB128 wire range (0 - 127).
-#define xTRACE_BASE_CORE  0x00U // Range: 0x00 - 0x1F (xTrace Core)
-#define xTRACE_BASE_xRTOS 0x20U // Range: 0x20 - 0x3F (xRTOS)
-#define xTRACE_BASE_xFS   0x40U // Range: 0x40 - 0x5F (xFS)
-#define xTRACE_BASE_xUSB  0x60U // Range: 0x60 - 0x7F (xUSB Device)
-#define xTRACE_BASE_xUSBH 0x80U // Range: 0x80 - 0x9F (xUSB Host)
-#define xTRACE_BASE_xUART 0xA0U // Range: 0xA0 - 0xBF (xUART)
+#define xTRACE_BASE_CORE   0x00U  // Range: 0x00 - 0x1F (xTrace Core)
+#define xTRACE_BASE_xRTOS  0x20U  // Range: 0x20 - 0x3F (xRTOS)
+#define xTRACE_BASE_xFS    0x40U  // Range: 0x40 - 0x5F (xFS)
+#define xTRACE_BASE_xUSB   0x60U  // Range: 0x60 - 0x7F (xUSB Device)
+#define xTRACE_BASE_xUSBH  0x80U  // Range: 0x80 - 0x9F (xUSB Host)
+#define xTRACE_BASE_xUART  0xA0U  // Range: 0xA0 - 0xBF (xUART)
+#define xTRACE_BASE_xI2C   0xC0U  // Range: 0xC0 - 0xDF (xI2C)
+#define xTRACE_BASE_xSPI   0xE0U  // Range: 0xE0 - 0xFF (xSPI)
+#define xTRACE_BASE_xGPIO  0x100U // Range: 0x100 - 0x11F (xGPIO)
+#define xTRACE_BASE_xTIMER 0x120U // Range: 0x120 - 0x13F (xTIMER)
 
 // 2-byte LEB128 wire range (128+)
-#define xTRACE_BASE_USER 0xC0U // Range: 0xC0+      (User App Events)
+#define xTRACE_BASE_USER 0x140U // Range: 0x140+      (User App Events)
 
 #endif // XTRACE_REGISTRY_H
 // EOF /////////////////////////////////////////////////////////////////////////////

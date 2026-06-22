@@ -1,0 +1,93 @@
+{
+  "_comment": "xUSBH v2 event dictionary. Keys are decimal event IDs matching xUSBH_TRACE_CODE_* in xusbh_trace.h.",
+  "events": {
+    "128": {
+      "arg_labels": [
+        "port"
+      ],
+      "name": "PORT_CONNECT",
+      "param_count": 1,
+      "track": "xUSBH/Port",
+      "type": "instant"
+    },
+    "129": {
+      "arg_labels": [
+        "port"
+      ],
+      "name": "PORT_DISCONNECT",
+      "param_count": 1,
+      "track": "xUSBH/Port",
+      "type": "instant"
+    },
+    "130": {
+      "arg_labels": [
+        "port"
+      ],
+      "name": "PORT_RESET",
+      "param_count": 1,
+      "track": "xUSBH/Port",
+      "type": "instant"
+    },
+    "131": {
+      "arg_labels": [
+        "port",
+        "state"
+      ],
+      "name": "ENUM_STATE",
+      "param_count": 2,
+      "track": "xUSBH/Enumeration",
+      "type": "instant"
+    },
+    "132": {
+      "arg_labels": [
+        "state",
+        "status"
+      ],
+      "name": "ENUM_ERROR",
+      "param_count": 2,
+      "track": "xUSBH/Enumeration",
+      "type": "error"
+    },
+    "133": {
+      "arg_labels": [
+        "endpoint",
+        "length"
+      ],
+      "name": "TRANSFER_SUBMIT",
+      "param_count": 2,
+      "track": "xUSBH/Transfer",
+      "type": "instant"
+    },
+    "134": {
+      "arg_labels": [
+        "endpoint",
+        "event",
+        "actual_length"
+      ],
+      "name": "TRANSFER_COMPLETE",
+      "param_count": 3,
+      "track": "xUSBH/Transfer",
+      "type": "instant"
+    },
+    "135": {
+      "arg_labels": [
+        "interface_number"
+      ],
+      "name": "CLASS_BIND",
+      "param_count": 1,
+      "track": "xUSBH/Class",
+      "type": "instant"
+    },
+    "136": {
+      "arg_labels": [
+        "status"
+      ],
+      "name": "HCD_ERROR",
+      "param_count": 1,
+      "track": "xUSBH/HCD",
+      "type": "error"
+    }
+  },
+  "timestamp_hz": 1000000,
+  "version": 2
+}

@@ -144,7 +144,7 @@ void xUSBD_WIN_App_Process(xUSBD_Class_Context_t *class_ctx)
         if (app_info->rx_complete)
         {
             app_info->rx_complete = false;
-            xUSBD_WIN_Transmit(class_ctx, WIN_RX_Buffer, app_info->rx_length);
+            xUSBD_WIN_Transmit(class_ctx, WIN_RX_Buffer, app_info->rx_length, false);
         }
 
         if (app_info->tx_complete)

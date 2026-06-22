@@ -123,7 +123,14 @@
       "displayName": "AM243x TI Arm Clang",
       "inherits": "target-base",
       "binaryDir": "${sourceDir}/build/am243x-ticlang",
-      "toolchainFile": "${sourceDir}/cmake/toolchains/am243x-ticlang.cmake"
+      "toolchainFile": "${sourceDir}/cmake/toolchains/am243x-ticlang.cmake",
+      "cacheVariables": {
+        "XUSBD_PORT": "am243x",
+        "XUSBH_PORT": "am243x",
+        "xSDK_BUILD_XUSB_HOST": true,
+        "xUSBH_AM243X_HCD_ENABLE_MCU_PLUS_SDK": true,
+        "xUSBH_AM243X_HCD_ENABLE_SUPER_SPEED": true
+      }
     },
     {
       "name": "ch32h417-riscv-gcc",
@@ -137,6 +144,21 @@
         "CMAKE_MAKE_PROGRAM": "${sourceDir}/tools/cmake/bin/ninja.exe",
         "xSDK_BUILD_TESTS": false,
         "xSDK_WARNINGS_AS_ERRORS": true
+      }
+    },
+    {
+      "name": "ch32h417-riscv-gcc-ram",
+      "displayName": "CH32H417 V5F RISC-V GCC RAM bring-up",
+      "description": "Build the minimal CH32H417 V5F bring-up ELF for RAM execution.",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/ch32h417-riscv-gcc-ram",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/ch32h417-riscv-gcc-ram.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_MAKE_PROGRAM": "${sourceDir}/tools/cmake/bin/ninja.exe",
+        "xSDK_BUILD_TESTS": false,
+        "xSDK_WARNINGS_AS_ERRORS": true,
+        "xSDK_CH32H417_RAM": true
       }
     },
     {
@@ -198,6 +220,10 @@
     {
       "name": "ch32h417-riscv-gcc",
       "configurePreset": "ch32h417-riscv-gcc"
+    },
+    {
+      "name": "ch32h417-riscv-gcc-ram",
+      "configurePreset": "ch32h417-riscv-gcc-ram"
     },
     {
       "name": "qemu-r5",

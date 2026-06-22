@@ -1,0 +1,133 @@
+{
+  "_comment": "xI2C v2 event dictionary. Keys are decimal event IDs matching xI2C_TRACE_CODE_* in xi2c_trace.h.",
+  "events": {
+    "192": {
+      "arg_labels": [
+        "bitrate_hz"
+      ],
+      "name": "I2C_INIT",
+      "param_count": 1,
+      "track": "xI2C/Lifecycle",
+      "type": "instant"
+    },
+    "193": {
+      "arg_labels": [
+        "unused"
+      ],
+      "name": "I2C_DEINIT",
+      "param_count": 1,
+      "track": "xI2C/Lifecycle",
+      "type": "instant"
+    },
+    "194": {
+      "arg_labels": [
+        "unused"
+      ],
+      "name": "I2C_START",
+      "param_count": 1,
+      "track": "xI2C/Lifecycle",
+      "type": "instant"
+    },
+    "195": {
+      "arg_labels": [
+        "unused"
+      ],
+      "name": "I2C_STOP",
+      "param_count": 1,
+      "track": "xI2C/Lifecycle",
+      "type": "instant"
+    },
+    "196": {
+      "arg_labels": [
+        "device_address",
+        "tx_length"
+      ],
+      "name": "I2C_WRITE_START",
+      "param_count": 2,
+      "track": "xI2C/Transfer",
+      "type": "begin"
+    },
+    "197": {
+      "arg_labels": [
+        "device_address",
+        "status"
+      ],
+      "name": "I2C_WRITE_DONE",
+      "param_count": 2,
+      "track": "xI2C/Transfer",
+      "type": "end"
+    },
+    "198": {
+      "arg_labels": [
+        "device_address",
+        "rx_length"
+      ],
+      "name": "I2C_READ_START",
+      "param_count": 2,
+      "track": "xI2C/Transfer",
+      "type": "begin"
+    },
+    "199": {
+      "arg_labels": [
+        "device_address",
+        "status"
+      ],
+      "name": "I2C_READ_DONE",
+      "param_count": 2,
+      "track": "xI2C/Transfer",
+      "type": "end"
+    },
+    "200": {
+      "arg_labels": [
+        "device_address",
+        "tx_length"
+      ],
+      "name": "I2C_WRITE_READ_START",
+      "param_count": 2,
+      "track": "xI2C/Transfer",
+      "type": "begin"
+    },
+    "201": {
+      "arg_labels": [
+        "device_address",
+        "status"
+      ],
+      "name": "I2C_WRITE_READ_DONE",
+      "param_count": 2,
+      "track": "xI2C/Transfer",
+      "type": "end"
+    },
+    "202": {
+      "arg_labels": [
+        "device_address",
+        "tx_length"
+      ],
+      "name": "I2C_ASYNC_START",
+      "param_count": 2,
+      "track": "xI2C/Transfer",
+      "type": "begin"
+    },
+    "203": {
+      "arg_labels": [
+        "event",
+        "status"
+      ],
+      "name": "I2C_CALLBACK",
+      "param_count": 2,
+      "track": "xI2C/Callback",
+      "type": "instant"
+    },
+    "204": {
+      "arg_labels": [
+        "device_address",
+        "status"
+      ],
+      "name": "I2C_ERROR",
+      "param_count": 2,
+      "track": "xI2C/Error",
+      "type": "error"
+    }
+  },
+  "timestamp_hz": 1000000,
+  "version": 2
+}

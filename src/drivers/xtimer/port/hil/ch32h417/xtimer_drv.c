@@ -19,6 +19,7 @@
 // INCLUDES ////////////////////////////////////////////////////////////////////////
 // COMPILER INCLUDES
 #include <stdint.h>
+#include <stddef.h>
 
 // SYSTEM INCLUDES
 #ifndef asm
@@ -27,7 +28,7 @@
 #include "ch32h417.h"
 
 // MODULE INCLUDES
-#include "xtimer.h"
+#include "xtimer_drv.h"
 
 // MACROS //////////////////////////////////////////////////////////////////////////
 
@@ -36,11 +37,35 @@
 // VARIABLES ///////////////////////////////////////////////////////////////////////
 
 // FUNCTION PROTOTYPES /////////////////////////////////////////////////////////////
+static xRETURN_t ch32_timer_init(void *driver_ctx, const xTIMER_Config_t *config);
+static xRETURN_t ch32_timer_deinit(void *driver_ctx);
+static xRETURN_t ch32_timer_start(void *driver_ctx);
+static xRETURN_t ch32_timer_stop(void *driver_ctx);
+static xRETURN_t ch32_timer_get_count(void *driver_ctx, uint32_t *count);
+static xRETURN_t ch32_timer_clear_irq(void *driver_ctx);
+static xRETURN_t ch32_timer_set_event_callback(void *driver_ctx, xTIMER_Driver_Event_Callback_t callback, void *callback_ctx);
 
-// PUBLIC FUNCTIONS IMPLEMENTATION /////////////////////////////////////////////////
+// DRIVER OPS //////////////////////////////////////////////////////////////////////
+const xTIMER_Driver_Ops_t xTIMER_CH32H417_Driver_Ops = {
+    .init = ch32_timer_init,
+    .deinit = ch32_timer_deinit,
+    .start = ch32_timer_start,
+    .stop = ch32_timer_stop,
+    .get_count = ch32_timer_get_count,
+    .clear_irq = ch32_timer_clear_irq,
+    .set_event_callback = ch32_timer_set_event_callback,
+};
 
-void xTIMER_Init_Periodic(uint32_t base_addr, uint32_t period_us, uint32_t module_clk_hz)
+// PRIVATE FUNCTIONS IMPLEMENTATION ////////////////////////////////////////////////
+static xRETURN_t ch32_timer_init(void *driver_ctx, const xTIMER_Config_t *config)
 {
+    xTIMER_CH32H417_Context_t *ctx = (xTIMER_CH32H417_Context_t *)driver_ctx;
+    if ((ctx == NULL) || (config == NULL))
+    {
+        return xRETURN_xERR_xTIMER_NULL_POINTER;
+    }
+
+    uint32_t base_addr = ctx->base_addr;
     TIM_TypeDef *tim = (TIM_TypeDef *)base_addr;
 
     // 1. Enable peripheral clock and reset timer block dynamically
@@ -74,8 +99,8 @@ void xTIMER_Init_Periodic(uint32_t base_addr, uint32_t period_us, uint32_t modul
     tim->CTLR2 = 0U;
 
     // 2. Compute prescaler and auto-reload registers
-    uint32_t psc = module_clk_hz / 1000000U;
-    uint32_t arr = period_us;
+    uint32_t psc = config->module_clk_hz / 1000000U;
+    uint32_t arr = config->period_us;
     while (arr > 65535U)
     {
         psc *= 2U;
@@ -99,24 +124,94 @@ void xTIMER_Init_Periodic(uint32_t base_addr, uint32_t period_us, uint32_t modul
 
     // Seed the counter registers immediately
     tim->SWEVGR = TIM_UG;
+
+    ctx->is_initialized = true;
+    return xRETURN_OK;
 }
 
-void xTIMER_Start(uint32_t base_addr)
+static xRETURN_t ch32_timer_deinit(void *driver_ctx)
 {
-    TIM_TypeDef *tim = (TIM_TypeDef *)base_addr;
+    xTIMER_CH32H417_Context_t *ctx = (xTIMER_CH32H417_Context_t *)driver_ctx;
+    if (ctx == NULL)
+    {
+        return xRETURN_xERR_xTIMER_NULL_POINTER;
+    }
+
+    TIM_TypeDef *tim = (TIM_TypeDef *)ctx->base_addr;
+    tim->CTLR1    &= ~(uint16_t)TIM_CEN;  // stop counter
+    tim->DMAINTENR = 0U;                   // disable all timer interrupts (UIE etc.)
+
+    ctx->is_initialized = false;
+    ctx->is_started     = false;
+    ctx->callback       = NULL;
+    ctx->callback_ctx   = NULL;
+    return xRETURN_OK;
+}
+
+static xRETURN_t ch32_timer_start(void *driver_ctx)
+{
+    xTIMER_CH32H417_Context_t *ctx = (xTIMER_CH32H417_Context_t *)driver_ctx;
+    if (ctx == NULL)
+    {
+        return xRETURN_xERR_xTIMER_NULL_POINTER;
+    }
+
+    TIM_TypeDef *tim = (TIM_TypeDef *)ctx->base_addr;
     tim->CTLR1 |= TIM_CEN;
+    ctx->is_started = true;
+    return xRETURN_OK;
 }
 
-void xTIMER_Stop(uint32_t base_addr)
+static xRETURN_t ch32_timer_stop(void *driver_ctx)
 {
-    TIM_TypeDef *tim = (TIM_TypeDef *)base_addr;
+    xTIMER_CH32H417_Context_t *ctx = (xTIMER_CH32H417_Context_t *)driver_ctx;
+    if (ctx == NULL)
+    {
+        return xRETURN_xERR_xTIMER_NULL_POINTER;
+    }
+
+    TIM_TypeDef *tim = (TIM_TypeDef *)ctx->base_addr;
     tim->CTLR1 &= ~(uint16_t)TIM_CEN;
+    ctx->is_started = false;
+    return xRETURN_OK;
 }
 
-void xTIMER_Clear_IRQ(uint32_t base_addr)
+static xRETURN_t ch32_timer_get_count(void *driver_ctx, uint32_t *count)
 {
-    TIM_TypeDef *tim = (TIM_TypeDef *)base_addr;
-    tim->INTFR = ~(uint16_t)TIM_UIF;
+    xTIMER_CH32H417_Context_t *ctx = (xTIMER_CH32H417_Context_t *)driver_ctx;
+    if ((ctx == NULL) || (count == NULL))
+    {
+        return xRETURN_xERR_xTIMER_NULL_POINTER;
+    }
+
+    TIM_TypeDef *tim = (TIM_TypeDef *)ctx->base_addr;
+    *count = tim->CNT;
+    return xRETURN_OK;
 }
 
+static xRETURN_t ch32_timer_clear_irq(void *driver_ctx)
+{
+    xTIMER_CH32H417_Context_t *ctx = (xTIMER_CH32H417_Context_t *)driver_ctx;
+    if (ctx == NULL)
+    {
+        return xRETURN_xERR_xTIMER_NULL_POINTER;
+    }
+
+    TIM_TypeDef *tim = (TIM_TypeDef *)ctx->base_addr;
+    tim->INTFR = ~(uint16_t)TIM_UIF;
+    return xRETURN_OK;
+}
+
+static xRETURN_t ch32_timer_set_event_callback(void *driver_ctx, xTIMER_Driver_Event_Callback_t callback, void *callback_ctx)
+{
+    xTIMER_CH32H417_Context_t *ctx = (xTIMER_CH32H417_Context_t *)driver_ctx;
+    if (ctx == NULL)
+    {
+        return xRETURN_xERR_xTIMER_NULL_POINTER;
+    }
+
+    ctx->callback = callback;
+    ctx->callback_ctx = callback_ctx;
+    return xRETURN_OK;
+}
 // EOF /////////////////////////////////////////////////////////////////////////////

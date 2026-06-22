@@ -1,0 +1,4 @@
+{
+  "_comment": "xUART v2 event dictionary. Keys are decimal event IDs matching xUART_TRACE_CODE_* in xuart_trace.h.",
+  "timestamp_hz": 1000000
+}
